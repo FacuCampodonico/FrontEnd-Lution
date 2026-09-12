@@ -27,7 +27,11 @@ export default function PagoPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="Pago" subtitle={`Mesa ${mesaId} / Pedido /`} />
+      <PageHeader
+        title="Pago"
+        subtitle={`Mesa ${mesaId} / Pedido /`}
+        onBack={() => navigate(`/mesas/${mesaId}`)}
+      />
       <div className="flex flex-1 items-center justify-center">
         <div className="flex w-full max-w-md flex-col items-center gap-6">
           <div className="flex flex-col items-center gap-1">

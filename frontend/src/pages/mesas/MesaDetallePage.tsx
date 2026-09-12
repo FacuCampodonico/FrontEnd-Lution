@@ -33,6 +33,7 @@ export default function MesaDetallePage() {
       <PageHeader
         title={mesa ? `Mesa ${mesa.numero}` : "Mesa"}
         subtitle="Mesas /"
+        onBack={() => navigate("/mesas")}
       />
       <div className="flex flex-1 overflow-hidden">
         <CatalogoProductos productos={catalogo} onAgregar={agregarAlCarrito} />

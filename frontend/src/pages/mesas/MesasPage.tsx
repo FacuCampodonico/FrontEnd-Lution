@@ -25,11 +25,7 @@ export default function MesasPage() {
         onAction={() => setModalAbierto(true)}
       />
       <div className="flex-1 overflow-y-auto p-7">
-        <MesaGrid
-          mesas={mesas}
-          onSelectMesa={handleSelectMesa}
-          onCreateMesa={() => setModalAbierto(true)}
-        />
+        <MesaGrid mesas={mesas} onSelectMesa={handleSelectMesa} />
       </div>
 
       <CrearMesaModal
