@@ -30,5 +30,11 @@ export function useCategorias() {
     return nueva
   }
 
-  return { categorias, loading, error, refetch, crearCategoria }
+  function actualizarCategoria(id: string, categoriaActualizada: Partial<Categoria>) {
+    setCategorias((prev) =>
+      prev.map((cat) => (cat.id === id ? { ...cat, ...categoriaActualizada } : cat))
+    )
+  }
+
+  return { categorias, loading, error, refetch, crearCategoria, actualizarCategoria }
 }
