@@ -30,5 +30,11 @@ export function useProductos() {
     return nuevo
   }
 
-  return { productos, loading, error, refetch, crearProducto }
+  function actualizarProducto(id: string, productoActualizado: Partial<Producto>) {
+    setProductos((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...productoActualizado } : p))
+    )
+  }
+
+  return { productos, loading, error, refetch, crearProducto, actualizarProducto }
 }
