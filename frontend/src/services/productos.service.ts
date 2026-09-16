@@ -12,3 +12,8 @@ export async function createProducto(
   const { data } = await api.post<Producto>("/productos", input)
   return data
 }
+
+export async function deleteProducto(id: string): Promise<void> {
+  await api.delete(`/productos/${id}`)
+  return Promise.resolve()
+}

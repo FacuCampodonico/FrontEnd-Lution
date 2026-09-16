@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 
-import { createProducto, getProductos } from "@/services/productos.service"
+import { createProducto, getProductos, deleteProducto } from "@/services/productos.service"
 import type { CrearProductoInput, Producto } from "@/types/producto"
 
 export function useProductos() {
@@ -36,5 +36,14 @@ export function useProductos() {
     )
   }
 
-  return { productos, loading, error, refetch, crearProducto, actualizarProducto }
+  async function eliminarProducto(id: string) {
+    try {
+      await deleteProducto(id)
+      setProductos((prev) => prev.filter((p) => p.id !== id))
+    } catch {
+      setError("No se pudo eliminar el producto")
+    }
+  }
+
+  return { productos, loading, error, refetch, crearProducto, actualizarProducto, eliminarProducto }
 }
