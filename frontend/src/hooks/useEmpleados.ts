@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 
 import { createEmpleado, getEmpleados } from "@/services/empleados.service"
-import type { CrearEmpleadoInput, Empleado } from "@/types/empleado"
+import type { CrearEmpleadoInput, Empleado, RolDisponible } from "@/types/empleado"
 
 export function useEmpleados() {
   const [empleados, setEmpleados] = useState<Empleado[]>([])
@@ -30,5 +30,11 @@ export function useEmpleados() {
     return nuevo
   }
 
-  return { empleados, loading, error, refetch, crearEmpleado }
+  const rolesDisponibles: RolDisponible[] = Array.from(
+    new Map(empleados.filter((empleado) => empleado.rolNombre !== null).map((empleado) => [
+      empleado.idTipoRol, { id: empleado.idTipoRol, nombre: empleado.rolNombre! },
+    ])).values(),
+  )
+
+  return { empleados, rolesDisponibles, loading, error, refetch, crearEmpleado }
 }

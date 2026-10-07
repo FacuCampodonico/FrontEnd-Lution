@@ -20,7 +20,7 @@ export async function createEmpleado(
     throw new Error("El ID del rol del empleado debe ser un entero positivo")
   }
   const body = {
-    nombre: "apellido" in input ? `${input.nombre} ${input.apellido}`.trim() : input.nombre,
+    nombre: input.nombre,
     dni: input.dni, idTipoRol,
   }
   const { data } = await api.post<EmpleadoServicio>("/empleados", body)
