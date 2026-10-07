@@ -41,6 +41,7 @@ export function CrearProductoModal({
   onSubmit,
 }: CrearProductoModalProps) {
   const [nombre, setNombre] = useState("")
+  const [descripcion, setDescripcion] = useState("")
   const [precio, setPrecio] = useState("")
   const [categoriaId, setCategoriaId] = useState("")
   const [insumos, setInsumos] = useState<Opcion[]>([])
@@ -58,11 +59,13 @@ export function CrearProductoModal({
   function handleSubmit() {
     onSubmit({
       nombre,
+      descripcion,
       precio: Number(precio),
       categoriaId,
       insumoIds: insumos.map((i) => i.id),
     })
     setNombre("")
+    setDescripcion("")
     setPrecio("")
     setCategoriaId("")
     setInsumos([])
@@ -83,6 +86,16 @@ export function CrearProductoModal({
             placeholder="Pizza muzzarella"
             value={nombre}
             onChange={(event) => setNombre(event.target.value)}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="producto-descripcion">Descripción</Label>
+          <Input
+            id="producto-descripcion"
+            placeholder="Pizza grande con muzzarella"
+            value={descripcion}
+            onChange={(event) => setDescripcion(event.target.value)}
           />
         </div>
 
@@ -136,7 +149,7 @@ export function CrearProductoModal({
             Cancelar
           </Button>
           <Button
-            disabled={!nombre || !precio || !categoriaId}
+            disabled={!nombre || !descripcion.trim() || !precio || !categoriaId}
             onClick={handleSubmit}
           >
             Confirmar
