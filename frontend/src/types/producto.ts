@@ -1,11 +1,11 @@
 export interface Producto {
   id: string
   nombre: string
+  descripcion: string
   precio: number
   categoriaId: string
   categoriaNombre: string
-  // El backend carga la receta; null queda permitido para consumidores anteriores.
-  insumoIds: string[] | null
+  insumoIds: string[]
 }
 
 export interface CrearProductoInput {
@@ -13,9 +13,12 @@ export interface CrearProductoInput {
   descripcion: string
   precio: number
   categoriaId: string
-  insumoIds: string[]
 }
 
-export interface ProductoServicio extends Producto {
-  descripcion: string
+export interface ActualizarProductoInput {
+  nombre?: string
+  descripcion?: string
+  categoriaId?: string
 }
+
+export type ProductoServicio = Producto

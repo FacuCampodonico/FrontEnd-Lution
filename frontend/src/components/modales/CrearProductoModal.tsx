@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ChipList } from "@/components/shared/ChipList"
 import type { CrearProductoInput } from "@/types/producto"
 
 interface Opcion {
@@ -29,52 +29,39 @@ interface CrearProductoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   categoriasDisponibles: Opcion[]
-  insumosDisponibles: Opcion[]
-  onSubmit: (input: CrearProductoInput) => void
+  onSubmit: (input: CrearProductoInput) => Promise<unknown>
 }
 
 export function CrearProductoModal({
   open,
   onOpenChange,
   categoriasDisponibles,
-  insumosDisponibles,
   onSubmit,
 }: CrearProductoModalProps) {
+  const { pending, error, run } = useAsyncAction()
   const [nombre, setNombre] = useState("")
   const [descripcion, setDescripcion] = useState("")
   const [precio, setPrecio] = useState("")
   const [categoriaId, setCategoriaId] = useState("")
-  const [insumos, setInsumos] = useState<Opcion[]>([])
-
-  function agregarInsumo(insumoId: string) {
-    const insumo = insumosDisponibles.find((i) => i.id === insumoId)
-    if (!insumo || insumos.some((i) => i.id === insumoId)) return
-    setInsumos((prev) => [...prev, insumo])
-  }
-
-  function quitarInsumo(nombreInsumo: string) {
-    setInsumos((prev) => prev.filter((i) => i.nombre !== nombreInsumo))
-  }
-
-  function handleSubmit() {
-    onSubmit({
-      nombre,
-      descripcion,
-      precio: Number(precio),
-      categoriaId,
-      insumoIds: insumos.map((i) => i.id),
+  async function handleSubmit() {
+    await run(async () => {
+      await onSubmit({
+        nombre: nombre.trim(),
+        descripcion: descripcion.trim(),
+        precio: Number(precio),
+        categoriaId,
     })
     setNombre("")
     setDescripcion("")
     setPrecio("")
     setCategoriaId("")
-    setInsumos([])
     onOpenChange(false)
+    })
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={(value) => !pending && onOpenChange(value)}>
+      <DialogContent showCloseButton={!pending}>
         <DialogHeader>
           <DialogTitle>Crear producto</DialogTitle>
         </DialogHeader>
@@ -83,6 +70,8 @@ export function CrearProductoModal({
           <Label htmlFor="producto-nombre">Nombre</Label>
           <Input
             id="producto-nombre"
+            maxLength={120}
+            disabled={pending}
             placeholder="Pizza muzzarella"
             value={nombre}
             onChange={(event) => setNombre(event.target.value)}
@@ -93,6 +82,8 @@ export function CrearProductoModal({
           <Label htmlFor="producto-descripcion">Descripción</Label>
           <Input
             id="producto-descripcion"
+            maxLength={255}
+            disabled={pending}
             placeholder="Pizza grande con muzzarella"
             value={descripcion}
             onChange={(event) => setDescripcion(event.target.value)}
@@ -105,15 +96,18 @@ export function CrearProductoModal({
             <Input
               id="producto-precio"
               type="number"
+              min="0"
+              step="0.01"
+              disabled={pending}
               placeholder="8900"
               value={precio}
               onChange={(event) => setPrecio(event.target.value)}
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Categoría</Label>
-            <Select value={categoriaId} onValueChange={setCategoriaId}>
-              <SelectTrigger className="w-full">
+            <Label htmlFor="producto-categoria">Categoría</Label>
+            <Select disabled={pending} value={categoriaId} onValueChange={setCategoriaId}>
+              <SelectTrigger id="producto-categoria" className="w-full">
                 <SelectValue placeholder="Seleccionar" />
               </SelectTrigger>
               <SelectContent>
@@ -127,29 +121,15 @@ export function CrearProductoModal({
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label>Insumos</Label>
-          <Select onValueChange={agregarInsumo}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Seleccionar insumos" />
-            </SelectTrigger>
-            <SelectContent>
-              {insumosDisponibles.map((insumo) => (
-                <SelectItem key={insumo.id} value={insumo.id}>
-                  {insumo.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <ChipList items={insumos.map((i) => i.nombre)} onRemove={quitarInsumo} />
-        </div>
+        <p className="text-sm text-muted-foreground">Las recetas se consultan en los productos existentes. Su edición requiere soporte adicional del backend.</p>
 
+        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button
-            disabled={!nombre || !descripcion.trim() || !precio || !categoriaId}
+            disabled={pending || !nombre.trim() || !descripcion.trim() || precio === "" || !Number.isFinite(Number(precio)) || Number(precio) < 0 || !categoriaId}
             onClick={handleSubmit}
           >
             Confirmar

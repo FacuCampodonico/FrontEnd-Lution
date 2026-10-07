@@ -15,15 +15,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useCategorias } from "@/hooks/useCategorias"
-import { useInsumos } from "@/hooks/useInsumos"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 import { useProductos } from "@/hooks/useProductos"
 import { formatCurrency } from "@/lib/utils"
 import type { Producto } from "@/types/producto"
 
 export default function ProductosPage() {
-  const { productos, crearProducto, actualizarProducto, eliminarProducto } = useProductos()
+  const { productos, loading, error, crearProducto, actualizarProducto, eliminarProducto } = useProductos()
   const { categorias } = useCategorias()
-  const { insumos } = useInsumos()
+  const eliminar = useAsyncAction()
 
   const [modalAbierto, setModalAbierto] = useState(false)
 
@@ -38,32 +38,18 @@ export default function ProductosPage() {
     setModalEditarAbierto(true)
   }
 
-  function handleGuardarEdicion(id: string, datosActualizados: Partial<Producto>) {
-    let categoriaNombre = productoEditar?.categoriaNombre
-
-    if (datosActualizados.categoriaId) {
-      const categoriaEncontrada = categorias.find((c) => c.id === datosActualizados.categoriaId)
-      if (categoriaEncontrada) {
-        categoriaNombre = categoriaEncontrada.nombre
-      }
-    }
-
-    actualizarProducto(id, {
-      ...datosActualizados,
-      categoriaNombre,
-    })
-  }
-
   function handleAbrirEliminar(producto: Producto) {
     setProductoEliminar(producto)
     setModalEliminarAbierto(true)
   }
 
-  function handleConfirmarEliminar() {
+  async function handleConfirmarEliminar() {
     if (!productoEliminar) return
-    void eliminarProducto(productoEliminar.id)
-    setModalEliminarAbierto(false)
-    setProductoEliminar(null)
+    await eliminar.run(async () => {
+      await eliminarProducto(productoEliminar.id)
+      setModalEliminarAbierto(false)
+      setProductoEliminar(null)
+    })
   }
 
   const columnas: DataTableColumn<Producto>[] = [
@@ -109,6 +95,8 @@ export default function ProductosPage() {
         onAction={() => setModalAbierto(true)}
       />
       <div className="flex-1 overflow-y-auto p-7">
+        {loading && <p role="status">Cargando productos…</p>}
+        {error && <p role="alert">{error}</p>}
         <DataTable
           columns={columnas}
           data={productos}
@@ -121,7 +109,6 @@ export default function ProductosPage() {
         open={modalAbierto}
         onOpenChange={setModalAbierto}
         categoriasDisponibles={categorias}
-        insumosDisponibles={insumos}
         onSubmit={crearProducto}
       />
 
@@ -130,12 +117,11 @@ export default function ProductosPage() {
         onOpenChange={setModalEditarAbierto}
         producto={productoEditar}
         categorias={categorias}
-        insumosDisponibles={insumos}
-        onSubmit={handleGuardarEdicion}
+        onSubmit={actualizarProducto}
       />
 
-      <Dialog open={modalEliminarAbierto} onOpenChange={setModalEliminarAbierto}>
-        <DialogContent className="max-w-sm">
+      <Dialog open={modalEliminarAbierto} onOpenChange={(value) => !eliminar.pending && setModalEliminarAbierto(value)}>
+        <DialogContent className="max-w-sm" showCloseButton={!eliminar.pending}>
           <DialogHeader>
             <DialogTitle>Eliminar producto</DialogTitle>
             <DialogDescription>
@@ -144,15 +130,18 @@ export default function ProductosPage() {
             </DialogDescription>
           </DialogHeader>
 
+          {eliminar.error && <p role="alert" className="text-sm text-destructive">{eliminar.error}</p>}
           <DialogFooter className="mt-4 flex gap-2 justify-end">
             <Button
               variant="outline"
+              disabled={eliminar.pending}
               onClick={() => setModalEliminarAbierto(false)}
             >
               Cancelar
             </Button>
             <Button
               variant="destructive"
+              disabled={eliminar.pending}
               onClick={handleConfirmarEliminar}
             >
               Eliminar

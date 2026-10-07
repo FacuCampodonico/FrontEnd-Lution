@@ -1,208 +1,72 @@
 import { useEffect, useState } from "react"
-import { Trash2, Plus } from "lucide-react"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { formatCurrency } from "@/lib/utils"
 import type { Categoria } from "@/types/categoria"
-import type { Producto } from "@/types/producto"
+import type { ActualizarProductoInput, Producto } from "@/types/producto"
 
 interface EditarProductoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   producto: Producto | null
-  categorias?: Categoria[]
-  insumosDisponibles?: { id: string; nombre: string }[]
-  onSubmit: (id: string, datosActualizados: Partial<Producto>) => void
+  categorias: Categoria[]
+  onSubmit: (id: string, input: ActualizarProductoInput) => Promise<unknown>
 }
 
-export function EditarProductoModal({
-  open,
-  onOpenChange,
-  producto,
-  categorias = [],
-  insumosDisponibles = [],
-  onSubmit,
-}: EditarProductoModalProps) {
+export function EditarProductoModal({ open, onOpenChange, producto, categorias, onSubmit }: EditarProductoModalProps) {
   const [nombre, setNombre] = useState("")
-  const [precio, setPrecio] = useState("")
+  const [descripcion, setDescripcion] = useState("")
   const [categoriaId, setCategoriaId] = useState("")
-  const [insumoIdsSeleccionados, setInsumoIdsSeleccionados] = useState<string[]>([])
-  const [insumoAAgregar, setInsumoAAgregar] = useState<string>("")
+  const { pending, error, run } = useAsyncAction()
 
   useEffect(() => {
     if (producto) {
-      setNombre(producto.nombre || "")
-      setPrecio(String(producto.precio || ""))
-      setCategoriaId(producto.categoriaId || "")
-      setInsumoIdsSeleccionados(Array.isArray(producto.insumoIds) ? producto.insumoIds : [])
-      setInsumoAAgregar("")
+      setNombre(producto.nombre)
+      setDescripcion(producto.descripcion)
+      setCategoriaId(producto.categoriaId)
     }
   }, [producto])
 
-  const insumosParaAgregar = insumosDisponibles.filter(
-    (ins) => !insumoIdsSeleccionados.includes(ins.id)
-  )
-
-  const handleAgregarInsumo = () => {
-    if (!insumoAAgregar) return
-    setInsumoIdsSeleccionados((prev) => [...prev, insumoAAgregar])
-    setInsumoAAgregar("")
-  }
-
-  const handleRemoverInsumo = (idRemover: string) => {
-    setInsumoIdsSeleccionados((prev) => prev.filter((id) => id !== idRemover))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!producto) return
-
-    onSubmit(producto.id, {
-      nombre,
-      precio: Number(precio),
-      categoriaId: categoriaId || undefined,
-      insumoIds: insumoIdsSeleccionados,
-    })
-
-    onOpenChange(false)
-  }
-
   if (!producto) return null
 
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    if (!producto) return
+    await run(async () => {
+      await onSubmit(producto.id, { nombre: nombre.trim(), descripcion: descripcion.trim(), categoriaId })
+      onOpenChange(false)
+    })
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={(value) => !pending && onOpenChange(value)}>
+      <DialogContent showCloseButton={!pending}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Editar Producto</DialogTitle>
+          <DialogTitle>Editar producto</DialogTitle>
+          <DialogDescription>La actualización está conectada al backend. Actualmente rechaza los cambios con 400 por falta de validadores en su DTO.</DialogDescription>
         </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-2">
-          <div className="flex flex-col gap-1.5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <fieldset disabled={pending} className="flex flex-col gap-3">
             <Label htmlFor="edit-nombre">Nombre</Label>
-            <Input
-              id="edit-nombre"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="edit-precio">Precio</Label>
-            <Input
-              id="edit-precio"
-              type="number"
-              step="0.01"
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
-              required
-            />
-          </div>
-
-          {categorias.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <Label>Categoría</Label>
-              <Select value={categoriaId} onValueChange={setCategoriaId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categorias.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2">
-            <Label>Insumos / Ingredientes ({insumoIdsSeleccionados.length})</Label>
-
-            {insumosParaAgregar.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Select value={insumoAAgregar} onValueChange={setInsumoAAgregar}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Agregar insumo..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {insumosParaAgregar.map((ins) => (
-                      <SelectItem key={ins.id} value={ins.id}>
-                        {ins.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleAgregarInsumo}
-                  disabled={!insumoAAgregar}
-                  className="flex items-center gap-1 shrink-0"
-                >
-                  <Plus className="h-4 w-4" />
-                  Agregar
-                </Button>
-              </div>
-            )}
-
-            {insumoIdsSeleccionados.length === 0 ? (
-              <p className="text-xs text-gray-400 italic py-1">
-                Sin insumos asignados.
-              </p>
-            ) : (
-              <ul className="divide-y divide-gray-100 max-h-36 overflow-y-auto border rounded-md p-2 mt-1">
-                {insumoIdsSeleccionados.map((id) => {
-                  const insumoObj = insumosDisponibles.find((i) => i.id === id)
-                  return (
-                    <li
-                      key={id}
-                      className="py-1 flex justify-between items-center text-sm"
-                    >
-                      <span className="font-medium text-gray-700">
-                        {insumoObj ? insumoObj.nombre : `Insumo (${id})`}
-                      </span>
-
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleRemoverInsumo(id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-2 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit">Guardar cambios</Button>
+            <Input id="edit-nombre" required maxLength={120} value={nombre} onChange={(event) => setNombre(event.target.value)} />
+            <Label htmlFor="edit-descripcion">Descripción</Label>
+            <Input id="edit-descripcion" required maxLength={255} value={descripcion} onChange={(event) => setDescripcion(event.target.value)} />
+            <Label htmlFor="edit-categoria">Categoría</Label>
+            <Select disabled={pending} value={categoriaId} onValueChange={setCategoriaId}>
+              <SelectTrigger id="edit-categoria"><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
+              <SelectContent>{categorias.map((categoria) => <SelectItem key={categoria.id} value={categoria.id}>{categoria.nombre}</SelectItem>)}</SelectContent>
+            </Select>
+          </fieldset>
+          <p className="text-sm">Precio: {formatCurrency(producto.precio)}. Su actualización requiere soporte adicional del backend.</p>
+          <p className="text-sm">Receta (solo consulta): {producto.insumoIds.length ? producto.insumoIds.map((id) => `Insumo #${id}`).join(", ") : "Sin insumos"}. El CRUD de productos no permite modificarla.</p>
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={pending || !nombre.trim() || !descripcion.trim() || !categoriaId}>Guardar cambios</Button>
           </div>
         </form>
       </DialogContent>
