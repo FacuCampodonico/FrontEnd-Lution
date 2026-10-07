@@ -6,7 +6,7 @@ export interface PedidoItem {
   cantidad: number
 }
 
-export type EstadoPedido = "abierto" | "pagado"
+type EstadoPedido = "abierto" | "pagado"
 
 export interface Pedido {
   id: string
@@ -19,4 +19,10 @@ export interface Pedido {
 export interface AgregarItemInput {
   productoId: string
   cantidad: number
+  comentario?: string
+}
+
+export interface ActualizarItemInput {
+  cantidad?: number
+  comentario?: string
 }
