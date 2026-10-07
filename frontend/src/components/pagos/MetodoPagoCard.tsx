@@ -23,6 +23,13 @@ export function MetodoPagoCard({
     <Card
       role="button"
       aria-disabled={disabled}
+      tabIndex={disabled ? -1 : 0}
+      onKeyDown={(event) => {
+        if (!disabled && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault()
+          onSelect(metodo)
+        }
+      }}
       onClick={() => !disabled && onSelect(metodo)}
       className={cn(
         "cursor-pointer items-center py-6 text-center transition-colors hover:bg-muted/50",

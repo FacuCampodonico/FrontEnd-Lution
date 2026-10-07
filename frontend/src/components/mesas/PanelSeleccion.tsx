@@ -8,7 +8,11 @@ interface PanelSeleccionProps {
   items: PedidoItem[]
   total: number
   pedidoCreado: boolean
-  onCrearPedido: () => void
+  disabled: boolean
+  cierrePendiente: boolean
+  onCantidad: (itemId: string, cantidad: number) => Promise<unknown>
+  onQuitar: (itemId: string) => Promise<unknown>
+  onCrearPedido: () => Promise<unknown>
   onPagar: () => void
 }
 
@@ -16,6 +20,10 @@ export function PanelSeleccion({
   items,
   total,
   pedidoCreado,
+  disabled,
+  cierrePendiente,
+  onCantidad,
+  onQuitar,
   onCrearPedido,
   onPagar,
 }: PanelSeleccionProps) {
@@ -30,7 +38,7 @@ export function PanelSeleccion({
       ) : (
         <div className="flex flex-col">
           {items.map((item) => (
-            <SeleccionItem key={item.id} item={item} />
+            <SeleccionItem key={item.id} item={item} disabled={disabled} onCantidad={onCantidad} onQuitar={onQuitar} />
           ))}
         </div>
       )}
@@ -45,20 +53,20 @@ export function PanelSeleccion({
         <div className="flex flex-col gap-2">
           <Button
             size="lg"
-            disabled={items.length === 0}
-            onClick={onCrearPedido}
+            disabled={disabled || pedidoCreado || cierrePendiente || items.length === 0}
+            onClick={() => { void onCrearPedido() }}
           >
             Crear pedido
           </Button>
           <Button
             size="lg"
             variant="secondary"
-            disabled={!pedidoCreado}
+            disabled={(!cierrePendiente && (!pedidoCreado || items.length === 0)) || (disabled && !cierrePendiente)}
             onClick={onPagar}
           >
-            Pagar
+            {cierrePendiente ? "Continuar al cierre" : "Pagar"}
           </Button>
-          {!pedidoCreado && (
+          {!pedidoCreado && !cierrePendiente && (
             <p className="text-center font-mono text-xs text-muted-foreground">
               Pagar se habilita al crear el pedido
             </p>

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react"
-
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
+import { errorMessage } from "@/lib/errors"
 import { getMesa } from "@/services/mesas.service"
-import { crearPedido as crearPedidoService, getPedidoPorMesa } from "@/services/pedidos.service"
+import { agregarItem, actualizarItem, quitarItem, crearPedido, getPedidoPorMesa } from "@/services/pedidos.service"
 import { getProductos } from "@/services/productos.service"
 import type { Mesa } from "@/types/mesa"
 import type { Pedido } from "@/types/pedido"
@@ -18,69 +19,110 @@ export function useMesaDetalle(mesaId: string) {
   const [catalogo, setCatalogo] = useState<Producto[]>([])
   const [carrito, setCarrito] = useState<ItemCarrito[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [needsRefresh, setNeedsRefresh] = useState(false)
+  const action = useAsyncAction()
+  const { clearError } = action
+  const currentMesaId = useRef(mesaId)
+  currentMesaId.current = mesaId
 
   const refetch = useCallback(async () => {
     setLoading(true)
-    setError(null)
+    setLoadError(null)
+    clearError()
     try {
       const [mesaData, pedidoData, catalogoData] = await Promise.all([
-        getMesa(mesaId),
-        getPedidoPorMesa(mesaId),
-        getProductos(),
+        getMesa(mesaId), getPedidoPorMesa(mesaId), getProductos(),
       ])
+      if (currentMesaId.current !== mesaId) return
       setMesa(mesaData)
       setPedido(pedidoData)
       setCatalogo(catalogoData)
-    } catch {
-      setError("No se pudo cargar la mesa")
+      setNeedsRefresh(false)
+      if (pedidoData) setCarrito([])
+    } catch (cause) {
+      if (currentMesaId.current === mesaId) setLoadError(errorMessage(cause))
     } finally {
-      setLoading(false)
+      if (currentMesaId.current === mesaId) setLoading(false)
     }
-  }, [mesaId])
+  }, [mesaId, clearError])
 
   useEffect(() => {
+    setMesa(null)
+    setPedido(null)
+    setCarrito([])
+    setNeedsRefresh(false)
     void refetch()
   }, [refetch])
 
-  // El carrito es solo estado de UI: recién se persiste como pedido
-  // (Mesa-Producto) al confirmar "Crear pedido".
-  function agregarAlCarrito(producto: Producto) {
+  const bloqueado = loading || loadError !== null || action.pending || needsRefresh || !mesa || mesa.estado === "por_pagar" || pedido?.estado === "pagado"
+
+  async function recibirPedido(actualizado: Pedido) {
+    if (currentMesaId.current !== mesaId) return
+    setPedido(actualizado)
+    setCarrito([])
+    setNeedsRefresh(true)
+    try {
+      const nuevaMesa = await getMesa(mesaId)
+      if (currentMesaId.current !== mesaId) return
+      setMesa(nuevaMesa)
+      setNeedsRefresh(false)
+    } catch {
+      throw new Error("El pedido se guardó, pero no se pudo actualizar la mesa. Recargá los datos antes de continuar.")
+    }
+  }
+
+  async function agregarProducto(producto: Producto) {
+    if (bloqueado) return
+    if (pedido) {
+      await action.run(async () => recibirPedido(await agregarItem(pedido.id, { productoId: producto.id, cantidad: 1 })))
+      return
+    }
     setCarrito((prev) => {
       const existente = prev.find((item) => item.producto.id === producto.id)
-      if (existente) {
-        return prev.map((item) =>
-          item.producto.id === producto.id
-            ? { ...item, cantidad: item.cantidad + 1 }
-            : item
-        )
-      }
-      return [...prev, { producto, cantidad: 1 }]
+      return existente
+        ? prev.map((item) => item.producto.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item)
+        : [...prev, { producto, cantidad: 1 }]
     })
   }
 
+  async function cambiarCantidad(itemId: string, cantidad: number) {
+    if (bloqueado || !Number.isSafeInteger(cantidad) || cantidad < 1) return
+    if (pedido) {
+      await action.run(async () => recibirPedido(await actualizarItem(pedido.id, itemId, { cantidad })))
+    } else {
+      setCarrito((prev) => prev.map((item) => item.producto.id === itemId ? { ...item, cantidad } : item))
+    }
+  }
+
+  async function quitarProducto(itemId: string) {
+    if (bloqueado) return
+    if (pedido) {
+      await action.run(async () => recibirPedido(await quitarItem(pedido.id, itemId)))
+    } else {
+      setCarrito((prev) => prev.filter((item) => item.producto.id !== itemId))
+    }
+  }
+
   async function confirmarPedido() {
-    const nuevoPedido = await crearPedidoService(
-      mesaId,
-      carrito.map((item) => ({
-        productoId: item.producto.id,
-        cantidad: item.cantidad,
-      }))
-    )
-    setPedido(nuevoPedido)
-    setCarrito([])
-    return nuevoPedido
+    if (bloqueado || pedido || carrito.length === 0) return
+    await action.run(async () => {
+      const nuevo = await crearPedido(mesaId, carrito.map((item) => ({ productoId: item.producto.id, cantidad: item.cantidad })))
+      if (currentMesaId.current !== mesaId) return
+      if (nuevo) {
+        await recibirPedido(nuevo)
+      } else {
+        setNeedsRefresh(true)
+        const recuperado = await getPedidoPorMesa(mesaId)
+        if (!recuperado) throw new Error("El backend no devolvió el pedido creado. Recargá los datos de la mesa antes de continuar.")
+        await recibirPedido(recuperado)
+      }
+    })
   }
 
   return {
-    mesa,
-    pedido,
-    catalogo,
-    carrito,
-    loading,
-    error,
-    refetch,
-    agregarAlCarrito,
-    confirmarPedido,
+    mesa, pedido, catalogo, carrito, loading, pending: action.pending, bloqueado,
+    error: loadError ?? action.error, refetch, agregarProducto, cambiarCantidad,
+    quitarProducto, confirmarPedido,
   }
 }

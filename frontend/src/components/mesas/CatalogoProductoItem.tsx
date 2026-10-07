@@ -4,12 +4,14 @@ import type { Producto } from "@/types/producto"
 
 interface CatalogoProductoItemProps {
   producto: Producto
-  onAgregar: (producto: Producto) => void
+  disabled?: boolean
+  onAgregar: (producto: Producto) => Promise<unknown>
 }
 
 export function CatalogoProductoItem({
   producto,
   onAgregar,
+  disabled,
 }: CatalogoProductoItemProps) {
   return (
     <div className="flex items-center justify-between gap-4 border-b px-4 py-3 last:border-b-0">
@@ -26,7 +28,8 @@ export function CatalogoProductoItem({
         <Button
           size="icon-sm"
           variant="secondary"
-          onClick={() => onAgregar(producto)}
+          disabled={disabled}
+          onClick={() => { void onAgregar(producto) }}
           aria-label={`Agregar ${producto.nombre}`}
         >
           +

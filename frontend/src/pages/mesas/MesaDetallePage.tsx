@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom"
 
 import { CatalogoProductos } from "@/components/mesas/CatalogoProductos"
 import { PanelSeleccion } from "@/components/mesas/PanelSeleccion"
+import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { useMesaDetalle } from "@/hooks/useMesaDetalle"
 import type { PedidoItem } from "@/types/pedido"
@@ -9,7 +10,7 @@ import type { PedidoItem } from "@/types/pedido"
 export default function MesaDetallePage() {
   const { mesaId } = useParams<{ mesaId: string }>()
   const navigate = useNavigate()
-  const { mesa, pedido, catalogo, carrito, agregarAlCarrito, confirmarPedido } =
+  const { mesa, pedido, catalogo, carrito, loading, pending, bloqueado, error, refetch, agregarProducto, cambiarCantidad, quitarProducto, confirmarPedido } =
     useMesaDetalle(mesaId!)
 
   const pedidoCreado = pedido !== null
@@ -35,12 +36,19 @@ export default function MesaDetallePage() {
         subtitle="Mesas /"
         onBack={() => navigate("/mesas")}
       />
+      {loading && <p role="status" className="px-7">Cargando mesa…</p>}
+      {error && <div className="px-7"><p role="alert" className="text-destructive">{error}</p><Button variant="outline" disabled={loading || pending} onClick={refetch}>Recargar datos</Button></div>}
+      {mesa?.estado === "por_pagar" && <p role="status" className="px-7">El pedido ya fue cobrado. La mesa está pendiente de cierre.</p>}
       <div className="flex flex-1 overflow-hidden">
-        <CatalogoProductos productos={catalogo} onAgregar={agregarAlCarrito} />
+        <CatalogoProductos productos={catalogo} disabled={bloqueado} onAgregar={agregarProducto} />
         <PanelSeleccion
           items={itemsAMostrar}
           total={total}
           pedidoCreado={pedidoCreado}
+          disabled={bloqueado}
+          cierrePendiente={mesa?.estado === "por_pagar"}
+          onCantidad={cambiarCantidad}
+          onQuitar={quitarProducto}
           onCrearPedido={confirmarPedido}
           onPagar={() => navigate(`/mesas/${mesaId}/pago`)}
         />

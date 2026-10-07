@@ -18,3 +18,8 @@ export async function createMesa(input: CrearMesaInput): Promise<Mesa> {
   const { data } = await api.post<Mesa>("/mesas", body)
   return data
 }
+
+export async function cerrarMesa(mesaId: string | number): Promise<{ message: string; estado: "libre" }> {
+  const { data } = await api.post<{ message: string; estado: "libre" }>(`/mesas/${mesaId}/cerrar`)
+  return data
+}

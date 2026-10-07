@@ -4,12 +4,14 @@ import type { Producto } from "@/types/producto"
 
 interface CatalogoProductosProps {
   productos: Producto[]
-  onAgregar: (producto: Producto) => void
+  disabled?: boolean
+  onAgregar: (producto: Producto) => Promise<unknown>
 }
 
 export function CatalogoProductos({
   productos,
   onAgregar,
+  disabled,
 }: CatalogoProductosProps) {
   return (
     <div className="flex flex-1 flex-col gap-3.5 overflow-y-auto p-7">
@@ -24,6 +26,7 @@ export function CatalogoProductos({
             <CatalogoProductoItem
               key={producto.id}
               producto={producto}
+              disabled={disabled}
               onAgregar={onAgregar}
             />
           ))}

@@ -15,12 +15,12 @@ export async function crearPedido(
   mesaId: string | number,
   items: AgregarItemInput[],
   empleadoId?: string | number,
-): Promise<Pedido> {
+): Promise<Pedido | null> {
   const body = {
     items: items.map((item) => ({ productoId: Number(item.productoId), cantidad: item.cantidad })),
     ...(empleadoId === undefined ? {} : { empleadoId: Number(empleadoId) }),
   }
-  const { data } = await api.post<Pedido>(`/mesas/${mesaId}/pedido`, body)
+  const { data } = await api.post<Pedido | null>(`/mesas/${mesaId}/pedido`, body)
   return data
 }
 
