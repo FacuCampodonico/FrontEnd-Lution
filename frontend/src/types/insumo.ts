@@ -1,4 +1,4 @@
-export type UnidadMedida = "kg" | "litros" | "unidades" | "latas" | "gramos"
+export type UnidadMedida = "kg" | "litros" | "unidades" | "latas" | "gramos" | "mililitros"
 
 export interface Insumo {
   id: string
@@ -12,3 +12,7 @@ export interface CrearInsumoInput {
   stock: number
   unidad: UnidadMedida
 }
+
+export const UNIDADES_API = {
+  kg: "KG", litros: "L", unidades: "UNIDAD", gramos: "G", mililitros: "ML",
+} as const

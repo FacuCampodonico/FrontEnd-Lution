@@ -6,12 +6,15 @@ export async function getMesas(): Promise<Mesa[]> {
   return data
 }
 
-export async function getMesa(mesaId: string): Promise<Mesa> {
+export async function getMesa(mesaId: string | number): Promise<Mesa> {
   const { data } = await api.get<Mesa>(`/mesas/${mesaId}`)
   return data
 }
 
 export async function createMesa(input: CrearMesaInput): Promise<Mesa> {
-  const { data } = await api.post<Mesa>("/mesas", input)
+  const numero = Number(input.numero)
+  if (!Number.isSafeInteger(numero) || numero <= 0) throw new Error("El número de mesa debe ser un entero positivo")
+  const body = { numero, capacidad: input.capacidad }
+  const { data } = await api.post<Mesa>("/mesas", body)
   return data
 }

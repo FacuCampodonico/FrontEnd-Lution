@@ -11,4 +11,5 @@ export interface Mesa {
 
 export interface CrearMesaInput {
   numero: string
+  capacidad?: number
 }
