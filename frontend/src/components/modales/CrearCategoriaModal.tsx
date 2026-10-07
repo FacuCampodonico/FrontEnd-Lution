@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -10,57 +11,32 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { ChipList } from "@/components/shared/ChipList"
 import type { CrearCategoriaInput } from "@/types/categoria"
-
-interface ProductoOpcion {
-  id: string
-  nombre: string
-}
 
 interface CrearCategoriaModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  productosDisponibles: ProductoOpcion[]
-  onSubmit: (input: CrearCategoriaInput) => void
+  onSubmit: (input: CrearCategoriaInput) => Promise<unknown>
 }
 
 export function CrearCategoriaModal({
   open,
   onOpenChange,
-  productosDisponibles,
   onSubmit,
 }: CrearCategoriaModalProps) {
+  const { pending, error, run } = useAsyncAction()
   const [nombre, setNombre] = useState("")
-  const [seleccionados, setSeleccionados] = useState<ProductoOpcion[]>([])
-
-  function agregarProducto(productoId: string) {
-    const producto = productosDisponibles.find((p) => p.id === productoId)
-    if (!producto || seleccionados.some((p) => p.id === productoId)) return
-    setSeleccionados((prev) => [...prev, producto])
-  }
-
-  function quitarProducto(nombreProducto: string) {
-    setSeleccionados((prev) => prev.filter((p) => p.nombre !== nombreProducto))
-  }
-
-  function handleSubmit() {
-    onSubmit({ nombre, productoIds: seleccionados.map((p) => p.id) })
-    setNombre("")
-    setSeleccionados([])
-    onOpenChange(false)
+  async function handleSubmit() {
+    await run(async () => {
+      await onSubmit({ nombre: nombre.trim() })
+      setNombre("")
+      onOpenChange(false)
+    })
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={(value) => !pending && onOpenChange(value)}>
+      <DialogContent showCloseButton={!pending}>
         <DialogHeader>
           <DialogTitle>Crear categoría</DialogTitle>
         </DialogHeader>
@@ -69,37 +45,20 @@ export function CrearCategoriaModal({
           <Label htmlFor="categoria-nombre">Nombre</Label>
           <Input
             id="categoria-nombre"
+            maxLength={100}
+            disabled={pending}
             placeholder="Pizzas"
             value={nombre}
             onChange={(event) => setNombre(event.target.value)}
           />
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label>Productos de la categoría</Label>
-          <Select onValueChange={agregarProducto}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Seleccionar productos" />
-            </SelectTrigger>
-            <SelectContent>
-              {productosDisponibles.map((producto) => (
-                <SelectItem key={producto.id} value={producto.id}>
-                  {producto.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <ChipList
-            items={seleccionados.map((p) => p.nombre)}
-            onRemove={quitarProducto}
-          />
-        </div>
-
+        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button disabled={!nombre} onClick={handleSubmit}>
+          <Button disabled={pending || !nombre.trim()} onClick={handleSubmit}>
             Confirmar
           </Button>
         </DialogFooter>

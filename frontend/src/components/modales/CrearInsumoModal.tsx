@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -19,12 +20,12 @@ import {
 } from "@/components/ui/select"
 import type { CrearInsumoInput, UnidadMedida } from "@/types/insumo"
 
-const UNIDADES: UnidadMedida[] = ["kg", "litros", "unidades", "latas", "gramos"]
+const UNIDADES: UnidadMedida[] = ["kg", "litros", "unidades", "gramos", "mililitros"]
 
 interface CrearInsumoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (input: CrearInsumoInput) => void
+  onSubmit: (input: CrearInsumoInput) => Promise<unknown>
 }
 
 export function CrearInsumoModal({
@@ -32,21 +33,24 @@ export function CrearInsumoModal({
   onOpenChange,
   onSubmit,
 }: CrearInsumoModalProps) {
+  const { pending, error, run } = useAsyncAction()
   const [nombre, setNombre] = useState("")
   const [stock, setStock] = useState("")
   const [unidad, setUnidad] = useState<UnidadMedida>("kg")
 
-  function handleSubmit() {
-    onSubmit({ nombre, stock: Number(stock), unidad })
-    setNombre("")
-    setStock("")
-    setUnidad("kg")
-    onOpenChange(false)
+  async function handleSubmit() {
+    await run(async () => {
+      await onSubmit({ nombre: nombre.trim(), stock: Number(stock), unidad })
+      setNombre("")
+      setStock("")
+      setUnidad("kg")
+      onOpenChange(false)
+    })
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={(value) => !pending && onOpenChange(value)}>
+      <DialogContent showCloseButton={!pending}>
         <DialogHeader>
           <DialogTitle>Crear insumo</DialogTitle>
         </DialogHeader>
@@ -55,6 +59,8 @@ export function CrearInsumoModal({
           <Label htmlFor="insumo-nombre">Nombre</Label>
           <Input
             id="insumo-nombre"
+            maxLength={100}
+            disabled={pending}
             placeholder="Muzzarella"
             value={nombre}
             onChange={(event) => setNombre(event.target.value)}
@@ -67,18 +73,22 @@ export function CrearInsumoModal({
             <Input
               id="insumo-stock"
               type="number"
+              min="0"
+              step="0.01"
+              disabled={pending}
               placeholder="12"
               value={stock}
               onChange={(event) => setStock(event.target.value)}
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Unidad</Label>
+            <Label htmlFor="insumo-unidad">Unidad</Label>
             <Select
+              disabled={pending}
               value={unidad}
               onValueChange={(value) => setUnidad(value as UnidadMedida)}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="insumo-unidad" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -92,11 +102,12 @@ export function CrearInsumoModal({
           </div>
         </div>
 
+        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button disabled={!nombre || !stock} onClick={handleSubmit}>
+          <Button disabled={pending || !nombre.trim() || stock === "" || !Number.isFinite(Number(stock)) || Number(stock) < 0} onClick={handleSubmit}>
             Confirmar
           </Button>
         </DialogFooter>

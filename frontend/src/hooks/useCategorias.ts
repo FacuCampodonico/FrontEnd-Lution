@@ -13,8 +13,10 @@ export function useCategorias() {
     setError(null)
     try {
       setCategorias(await getCategorias())
+      return true
     } catch {
       setError("No se pudieron cargar las categorías")
+      return false
     } finally {
       setLoading(false)
     }
@@ -30,11 +32,6 @@ export function useCategorias() {
     return nueva
   }
 
-  function actualizarCategoria(id: string, categoriaActualizada: Partial<Categoria>) {
-    setCategorias((prev) =>
-      prev.map((cat) => (cat.id === id ? { ...cat, ...categoriaActualizada } : cat))
-    )
-  }
 
-  return { categorias, loading, error, refetch, crearCategoria, actualizarCategoria }
+  return { categorias, loading, error, refetch, crearCategoria }
 }

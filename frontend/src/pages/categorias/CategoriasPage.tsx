@@ -10,8 +10,8 @@ import { useProductos } from "@/hooks/useProductos"
 import type { Categoria } from "@/types/categoria"
 
 export default function CategoriasPage() {
-  const { categorias, crearCategoria, actualizarCategoria } = useCategorias()
-  const { productos } = useProductos()
+  const { categorias, loading, error, crearCategoria, refetch } = useCategorias()
+  const { productos, actualizarProducto } = useProductos()
   
   const [modalAbierto, setModalAbierto] = useState(false)
   const [categoriaSeleccionadaId, setCategoriaSeleccionadaId] = useState<string | null>(null)
@@ -24,27 +24,9 @@ export default function CategoriasPage() {
     setDetalleAbierto(true)
   }
 
-  function handleRemoverProductoDeCategoria(categoriaId: string, productoId: string) {
-    const categoria = categorias.find((c) => c.id === categoriaId)
-    if (!categoria) return
-
-    const productoIdsActuales = categoria.productoIds || []
-    const nuevosProductoIds = productoIdsActuales.filter((id) => id !== productoId)
-
-    actualizarCategoria(categoriaId, { productoIds: nuevosProductoIds })
-  }
-
-  function handleAgregarProductoACategoria(categoriaId: string, productoId: string) {
-    const categoria = categorias.find((c) => c.id === categoriaId)
-    if (!categoria) return
-
-    const productoIdsActuales = categoria.productoIds || []
-    
-    if (productoIdsActuales.includes(productoId)) return
-
-    const nuevosProductoIds = [...productoIdsActuales, productoId]
-
-    actualizarCategoria(categoriaId, { productoIds: nuevosProductoIds })
+  async function handleAgregarProductoACategoria(categoriaId: string, productoId: string) {
+    await actualizarProducto(productoId, { categoriaId })
+    if (!await refetch()) throw new Error("El producto se reasignó, pero no se pudo actualizar el listado de categorías. Recargá la pantalla.")
   }
 
   const columnas: DataTableColumn<Categoria>[] = [
@@ -85,6 +67,8 @@ export default function CategoriasPage() {
         onAction={() => setModalAbierto(true)}
       />
       <div className="flex-1 overflow-y-auto p-7">
+        {loading && <p role="status">Cargando categorías…</p>}
+        {error && <p role="alert">{error}</p>}
         <DataTable
           columns={columnas}
           data={categorias}
@@ -96,7 +80,6 @@ export default function CategoriasPage() {
       <CrearCategoriaModal
         open={modalAbierto}
         onOpenChange={setModalAbierto}
-        productosDisponibles={productos}
         onSubmit={crearCategoria}
       />
 
@@ -108,7 +91,6 @@ export default function CategoriasPage() {
         }}
         categoria={categoriaSeleccionada}
         productos={productos}
-        onRemoveProducto={handleRemoverProductoDeCategoria}
         onAddProducto={handleAgregarProductoACategoria}
       />
     </div>

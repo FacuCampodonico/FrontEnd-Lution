@@ -7,7 +7,7 @@ export async function getCategorias(): Promise<Categoria[]> {
 }
 
 export async function createCategoria(input: CrearCategoriaRequest | CrearCategoriaInput): Promise<Categoria> {
-  if ("productoIds" in input && input.productoIds.length) {
+  if ("productoIds" in input && Array.isArray(input.productoIds) && input.productoIds.length) {
     throw new Error("El backend no permite asignar productos al crear una categoría")
   }
   const body: CrearCategoriaRequest = { nombre: input.nombre }

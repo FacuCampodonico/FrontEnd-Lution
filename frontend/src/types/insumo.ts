@@ -1,4 +1,4 @@
-export type UnidadMedida = "kg" | "litros" | "unidades" | "latas" | "gramos" | "mililitros"
+export type UnidadMedida = "kg" | "litros" | "unidades" | "gramos" | "mililitros"
 
 export interface Insumo {
   id: string

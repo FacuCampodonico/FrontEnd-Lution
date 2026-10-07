@@ -13,7 +13,7 @@ const columnas: DataTableColumn<Insumo>[] = [
 ]
 
 export default function InsumosPage() {
-  const { insumos, crearInsumo } = useInsumos()
+  const { insumos, loading, error, crearInsumo } = useInsumos()
   const [modalAbierto, setModalAbierto] = useState(false)
 
   return (
@@ -24,6 +24,8 @@ export default function InsumosPage() {
         onAction={() => setModalAbierto(true)}
       />
       <div className="flex-1 overflow-y-auto p-7">
+        {loading && <p role="status">Cargando…</p>}
+        {error && <p role="alert">{error}</p>}
         <DataTable
           columns={columnas}
           data={insumos}

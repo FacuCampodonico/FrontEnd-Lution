@@ -6,9 +6,6 @@ export interface Categoria {
 
 export interface CrearCategoriaInput {
   nombre: string
-  productoIds: string[]
 }
 
-export interface CrearCategoriaRequest {
-  nombre: string
-}
+export type CrearCategoriaRequest = CrearCategoriaInput

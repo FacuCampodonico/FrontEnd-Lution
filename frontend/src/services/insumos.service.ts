@@ -8,8 +8,8 @@ export async function getInsumos(): Promise<Insumo[]> {
 }
 
 export async function createInsumo(input: CrearInsumoInput): Promise<Insumo> {
-  if (input.unidad === "latas") {
-    throw new Error("El backend no admite latas como unidad de medida; elegí una unidad compatible")
+  if (!(input.unidad in UNIDADES_API)) {
+    throw new Error("El backend no admite esta unidad de medida; elegí una unidad compatible")
   }
   const body = {
     nombre: input.nombre,
