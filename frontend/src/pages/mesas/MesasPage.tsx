@@ -8,7 +8,7 @@ import { useMesas } from "@/hooks/useMesas"
 import type { Mesa } from "@/types/mesa"
 
 export default function MesasPage() {
-  const { mesas, crearMesa } = useMesas()
+  const { mesas, loading, error, crearMesa } = useMesas()
   const [modalAbierto, setModalAbierto] = useState(false)
   const navigate = useNavigate()
 
@@ -25,6 +25,8 @@ export default function MesasPage() {
         onAction={() => setModalAbierto(true)}
       />
       <div className="flex-1 overflow-y-auto p-7">
+        {loading && <p role="status">Cargando…</p>}
+        {error && <p role="alert">{error}</p>}
         <MesaGrid mesas={mesas} onSelectMesa={handleSelectMesa} />
       </div>
 
