@@ -8,3 +8,7 @@ export interface CrearCategoriaInput {
   nombre: string
   productoIds: string[]
 }
+
+export interface CrearCategoriaRequest {
+  nombre: string
+}
