@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useState, type SubmitEvent } from "react"
 import { Navigate, useLocation, type Location } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ export default function LoginPage() {
 
   if (empleado) return <Navigate to={destinoTrasLogin(location.state)} replace />
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     await run(() => login(dni.trim(), password))
   }
