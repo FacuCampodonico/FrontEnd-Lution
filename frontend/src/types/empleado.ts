@@ -15,6 +15,7 @@ export interface CrearEmpleadoInput {
   nombre: string
   dni: string
   idTipoRol: number
+  password: string
 }
 
 export type EmpleadoServicio = Empleado
