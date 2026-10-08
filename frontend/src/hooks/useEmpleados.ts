@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState } from "react"
 import { createEmpleado, getEmpleados } from "@/services/empleados.service"
 import type { CrearEmpleadoInput, Empleado, RolDisponible } from "@/types/empleado"
 
-export function useEmpleados() {
+export function useEmpleados(habilitado = true) {
   const [empleados, setEmpleados] = useState<Empleado[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(habilitado)
   const [error, setError] = useState<string | null>(null)
 
   const refetch = useCallback(async () => {
@@ -21,8 +21,8 @@ export function useEmpleados() {
   }, [])
 
   useEffect(() => {
-    void refetch()
-  }, [refetch])
+    if (habilitado) void refetch()
+  }, [habilitado, refetch])
 
   async function crearEmpleado(input: CrearEmpleadoInput) {
     const nuevo = await createEmpleado(input)

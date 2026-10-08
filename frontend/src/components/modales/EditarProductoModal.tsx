@@ -5,8 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { formatCurrency } from "@/lib/utils"
 import type { Categoria } from "@/types/categoria"
+import type { Insumo } from "@/types/insumo"
 import type { ActualizarProductoInput, Producto } from "@/types/producto"
 
 interface EditarProductoModalProps {
@@ -14,12 +14,14 @@ interface EditarProductoModalProps {
   onOpenChange: (open: boolean) => void
   producto: Producto | null
   categorias: Categoria[]
+  insumos: Insumo[]
   onSubmit: (id: string, input: ActualizarProductoInput) => Promise<unknown>
 }
 
-export function EditarProductoModal({ open, onOpenChange, producto, categorias, onSubmit }: EditarProductoModalProps) {
+export function EditarProductoModal({ open, onOpenChange, producto, categorias, insumos, onSubmit }: EditarProductoModalProps) {
   const [nombre, setNombre] = useState("")
   const [descripcion, setDescripcion] = useState("")
+  const [precio, setPrecio] = useState("")
   const [categoriaId, setCategoriaId] = useState("")
   const { pending, error, run } = useAsyncAction()
 
@@ -27,17 +29,20 @@ export function EditarProductoModal({ open, onOpenChange, producto, categorias, 
     if (producto) {
       setNombre(producto.nombre)
       setDescripcion(producto.descripcion)
+      setPrecio(String(producto.precio))
       setCategoriaId(producto.categoriaId)
     }
   }, [producto])
 
   if (!producto) return null
 
+  const precioValido = precio !== "" && Number.isFinite(Number(precio)) && Number(precio) >= 0
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     if (!producto) return
     await run(async () => {
-      await onSubmit(producto.id, { nombre: nombre.trim(), descripcion: descripcion.trim(), categoriaId })
+      await onSubmit(producto.id, { nombre: nombre.trim(), descripcion: descripcion.trim(), precio: Number(precio), categoriaId })
       onOpenChange(false)
     })
   }
@@ -47,7 +52,7 @@ export function EditarProductoModal({ open, onOpenChange, producto, categorias, 
       <DialogContent showCloseButton={!pending}>
         <DialogHeader>
           <DialogTitle>Editar producto</DialogTitle>
-          <DialogDescription>La actualización está conectada al backend. Actualmente rechaza los cambios con 400 por falta de validadores en su DTO.</DialogDescription>
+          <DialogDescription>Modificá el nombre, la descripción, el precio o la categoría del producto.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <fieldset disabled={pending} className="flex flex-col gap-3">
@@ -55,18 +60,33 @@ export function EditarProductoModal({ open, onOpenChange, producto, categorias, 
             <Input id="edit-nombre" required maxLength={120} value={nombre} onChange={(event) => setNombre(event.target.value)} />
             <Label htmlFor="edit-descripcion">Descripción</Label>
             <Input id="edit-descripcion" required maxLength={255} value={descripcion} onChange={(event) => setDescripcion(event.target.value)} />
+            <Label htmlFor="edit-precio">Precio</Label>
+            <Input id="edit-precio" type="number" min="0" step="0.01" required value={precio} onChange={(event) => setPrecio(event.target.value)} />
             <Label htmlFor="edit-categoria">Categoría</Label>
             <Select disabled={pending} value={categoriaId} onValueChange={setCategoriaId}>
               <SelectTrigger id="edit-categoria"><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
               <SelectContent>{categorias.map((categoria) => <SelectItem key={categoria.id} value={categoria.id}>{categoria.nombre}</SelectItem>)}</SelectContent>
             </Select>
           </fieldset>
-          <p className="text-sm">Precio: {formatCurrency(producto.precio)}. Su actualización requiere soporte adicional del backend.</p>
-          <p className="text-sm">Receta (solo consulta): {producto.insumoIds.length ? producto.insumoIds.map((id) => `Insumo #${id}`).join(", ") : "Sin insumos"}. El CRUD de productos no permite modificarla.</p>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium">Receta</p>
+            {producto.insumoIds.length ? (
+              <ul className="flex flex-wrap gap-1.5">
+                {producto.insumoIds.map((id) => (
+                  <li key={id} className="rounded-full border bg-muted px-2.5 py-0.5 text-xs">
+                    {insumos.find((insumo) => insumo.id === id)?.nombre ?? "Cargando…"}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">Sin insumos.</p>
+            )}
+            <p className="text-xs text-muted-foreground">La receta no se puede editar desde acá.</p>
+          </div>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={pending || !nombre.trim() || !descripcion.trim() || !categoriaId}>Guardar cambios</Button>
+            <Button type="submit" disabled={pending || !nombre.trim() || !descripcion.trim() || !precioValido || !categoriaId}>Guardar cambios</Button>
           </div>
         </form>
       </DialogContent>

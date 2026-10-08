@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom"
-import { Boxes, LogOut, ShoppingBag, Tags, UtensilsCrossed, Users } from "lucide-react"
+import { Boxes, ClipboardList, LogOut, ShoppingBag, Tags, UtensilsCrossed, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
@@ -8,9 +8,10 @@ import type { Nivel } from "@/types/auth"
 
 const NAV_ITEMS: { to: string; label: string; icon: typeof UtensilsCrossed; niveles: readonly Nivel[] }[] = [
   { to: "/mesas", label: "Mesas", icon: UtensilsCrossed, niveles: ["admin", "mozo"] },
+  { to: "/pedidos", label: "Pedidos", icon: ClipboardList, niveles: ["admin"] },
+  { to: "/productos", label: "Productos", icon: ShoppingBag, niveles: ["admin"] },
   { to: "/insumos", label: "Insumos", icon: Boxes, niveles: ["admin"] },
   { to: "/categorias", label: "Categorías", icon: Tags, niveles: ["admin"] },
-  { to: "/productos", label: "Productos", icon: ShoppingBag, niveles: ["admin"] },
   { to: "/empleados", label: "Empleados", icon: Users, niveles: ["admin"] },
 ]
 

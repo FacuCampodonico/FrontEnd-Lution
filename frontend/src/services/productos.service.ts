@@ -33,6 +33,7 @@ export async function updateProducto(id: string, input: ActualizarProductoInput)
   const body = {
     nombre: input.nombre,
     descripcion: input.descripcion,
+    precio: input.precio,
     idCategoria: input.categoriaId === undefined ? undefined : Number(input.categoriaId),
   }
   const { data } = await api.patch<ProductoServicio | null>(`/productos/${id}`, body)
