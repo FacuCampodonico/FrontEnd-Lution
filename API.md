@@ -2,6 +2,35 @@
 
 Diseño REST derivado de las pantallas del frontend ya construido (mesas, pedidos, pagos, catálogo e insumos). Rutas acotadas a lo que las pantallas actuales consumen (sin paginación ni filtros, según los servicios ya implementados en `frontend/src/services/*.ts`). Edición y borrado de catálogo (productos, categorías, insumos, empleados) no están contempladas porque ninguna pantalla del mockup los expone todavía.
 
+## Autenticación
+
+Pantalla "Login" (DNI + contraseña). El resto de las rutas exige `Authorization: Bearer <accessToken>`; el frontend guarda el token en `localStorage` y lo agrega en cada request.
+
+| Método | Ruta | Propósito |
+|---|---|---|
+| POST | `/api/auth/login` | Inicia sesión. 401 `"DNI o contraseña incorrectos"`. |
+| GET | `/api/auth/me` | Empleado de la sesión actual. Se usa al recargar la app para recuperar la sesión. |
+
+**POST /api/auth/login — request**
+```json
+{ "dni": "30111222", "password": "secreta" }
+```
+
+**POST /api/auth/login — response** (200; GET /api/auth/me devuelve solo `empleado`)
+```json
+{
+  "accessToken": "eyJhbGciOi...",
+  "empleado": { "id": "1", "nombre": "Ana Pérez", "dni": "30111222", "rolNombre": "Mozo", "nivel": "mozo" }
+}
+```
+`nivel`: `"admin" | "mozo"` (los roles Mozo, Cajero y Barra son nivel `mozo`).
+
+**Permisos por nivel**
+- `mozo`: ver mesas, crear mesa, abrir el detalle de mesa, crear pedido y agregar/editar/quitar ítems, `GET /api/productos`.
+- `admin`: todo lo anterior más pago y cierre de mesa, insumos, categorías, ABM de productos y empleados.
+
+Sin token o con token vencido → 401 (el frontend borra la sesión y vuelve a `/login`). Nivel insuficiente → 403.
+
 ## Mesas
 
 Pantalla "Mesas" (grilla principal) y navegación al detalle de mesa.
@@ -191,7 +220,7 @@ Pantalla listado de Empleados + modal de creación. Un único recurso con `rol` 
 
 **POST /api/empleados — request**
 ```json
-{ "nombre": "Ana", "apellido": "Pérez", "rol": "mozo" }
+{ "nombre": "Ana Pérez", "dni": "30111222", "idTipoRol": 2, "password": "secreta" }
 ```
 
 **Empleado — response** (200/201)
@@ -204,7 +233,7 @@ Pantalla listado de Empleados + modal de creación. Un único recurso con `rol` 
   "activo": true
 }
 ```
-`rol`: `"mozo" | "admin"`
+`rol`: `"mozo" | "admin"`. `password` es obligatorio (mínimo 6 caracteres) y es la contraseña con la que el empleado inicia sesión.
 
 ## Códigos de estado HTTP
 
@@ -213,6 +242,8 @@ Pantalla listado de Empleados + modal de creación. Un único recurso con `rol` 
 | 200 | OK — GET o acción exitosa (agregar/quitar ítem, pago registrado) |
 | 201 | Created — recurso creado (mesa, pedido, producto, categoría, insumo, empleado, pago) |
 | 400 | Bad Request — payload inválido (campo faltante, cantidad ≤ 0) |
+| 401 | Unauthorized — sin token, token vencido o credenciales de login incorrectas |
+| 403 | Forbidden — el nivel del empleado no habilita la operación |
 | 404 | Not Found — id de mesa/pedido/producto/ítem inexistente |
 | 409 | Conflict — ej. crear pedido en una mesa que ya tiene uno abierto |
 | 500 | Internal Server Error — error no controlado del backend |
