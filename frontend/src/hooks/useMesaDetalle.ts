@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useAsyncAction } from "@/hooks/useAsyncAction"
 import { errorMessage } from "@/lib/errors"
 import { getMesa } from "@/services/mesas.service"
-import { agregarItem, actualizarItem, quitarItem, crearPedido, getPedidoPorMesa } from "@/services/pedidos.service"
+import { agregarItem, actualizarItem, quitarItem, crearPedido, cancelarPedido as cancelarPedidoService, getPedidoPorMesa } from "@/services/pedidos.service"
 import { getProductos } from "@/services/productos.service"
 import type { Mesa } from "@/types/mesa"
 import type { Pedido } from "@/types/pedido"
@@ -18,6 +18,7 @@ export function useMesaDetalle(mesaId: string) {
   const [pedido, setPedido] = useState<Pedido | null>(null)
   const [catalogo, setCatalogo] = useState<Producto[]>([])
   const [carrito, setCarrito] = useState<ItemCarrito[]>([])
+  const [empleadoId, setEmpleadoId] = useState("")
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [needsRefresh, setNeedsRefresh] = useState(false)
@@ -51,6 +52,7 @@ export function useMesaDetalle(mesaId: string) {
     setMesa(null)
     setPedido(null)
     setCarrito([])
+    setEmpleadoId("")
     setNeedsRefresh(false)
     void refetch()
   }, [refetch])
@@ -105,9 +107,9 @@ export function useMesaDetalle(mesaId: string) {
   }
 
   async function confirmarPedido() {
-    if (bloqueado || pedido || carrito.length === 0) return
+    if (bloqueado || pedido || carrito.length === 0 || !empleadoId) return
     await action.run(async () => {
-      const nuevo = await crearPedido(mesaId, carrito.map((item) => ({ productoId: item.producto.id, cantidad: item.cantidad })))
+      const nuevo = await crearPedido(mesaId, carrito.map((item) => ({ productoId: item.producto.id, cantidad: item.cantidad })), empleadoId)
       if (currentMesaId.current !== mesaId) return
       if (nuevo) {
         await recibirPedido(nuevo)
@@ -120,9 +122,29 @@ export function useMesaDetalle(mesaId: string) {
     })
   }
 
+  async function cancelarPedido() {
+    if (bloqueado || !pedido) return false
+    return action.run(async () => {
+      await cancelarPedidoService(pedido.id)
+      if (currentMesaId.current !== mesaId) return
+      setPedido(null)
+      setCarrito([])
+      setEmpleadoId("")
+      setNeedsRefresh(true)
+      try {
+        const nuevaMesa = await getMesa(mesaId)
+        if (currentMesaId.current !== mesaId) return
+        setMesa(nuevaMesa)
+        setNeedsRefresh(false)
+      } catch {
+        throw new Error("El pedido se canceló, pero no se pudo actualizar la mesa. Recargá los datos antes de continuar.")
+      }
+    })
+  }
+
   return {
-    mesa, pedido, catalogo, carrito, loading, pending: action.pending, bloqueado,
+    mesa, pedido, catalogo, carrito, empleadoId, setEmpleadoId, loading, pending: action.pending, bloqueado,
     error: loadError ?? action.error, refetch, agregarProducto, cambiarCantidad,
-    quitarProducto, confirmarPedido,
+    quitarProducto, confirmarPedido, cancelarPedido,
   }
 }

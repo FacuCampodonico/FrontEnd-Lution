@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { SeleccionItem } from "@/components/mesas/SeleccionItem"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
+import type { Empleado } from "@/types/empleado"
 import type { PedidoItem } from "@/types/pedido"
 
 interface PanelSeleccionProps {
@@ -10,10 +12,17 @@ interface PanelSeleccionProps {
   pedidoCreado: boolean
   disabled: boolean
   cierrePendiente: boolean
+  empleados: Empleado[]
+  empleadosLoading: boolean
+  empleadosError: string | null
+  empleadoId: string
+  empleadoNombre: string | null
+  onEmpleado: (empleadoId: string) => void
   onCantidad: (itemId: string, cantidad: number) => Promise<unknown>
   onQuitar: (itemId: string) => Promise<unknown>
   onCrearPedido: () => Promise<unknown>
   onPagar: () => void
+  onCancelarPedido: () => void
 }
 
 export function PanelSeleccion({
@@ -22,10 +31,17 @@ export function PanelSeleccion({
   pedidoCreado,
   disabled,
   cierrePendiente,
+  empleados,
+  empleadosLoading,
+  empleadosError,
+  empleadoId,
+  empleadoNombre,
+  onEmpleado,
   onCantidad,
   onQuitar,
   onCrearPedido,
   onPagar,
+  onCancelarPedido,
 }: PanelSeleccionProps) {
   return (
     <aside className="flex w-[400px] shrink-0 flex-col gap-3.5 border-l bg-background p-6">
@@ -51,13 +67,39 @@ export function PanelSeleccion({
           </span>
         </div>
         <div className="flex flex-col gap-2">
-          <Button
-            size="lg"
-            disabled={disabled || pedidoCreado || cierrePendiente || items.length === 0}
-            onClick={() => { void onCrearPedido() }}
-          >
-            Crear pedido
-          </Button>
+          <div className="flex gap-2">
+            {!cierrePendiente && (
+              <Select disabled={disabled || pedidoCreado || empleadosLoading || !empleados.length} value={empleadoId} onValueChange={onEmpleado}>
+                <SelectTrigger aria-label="Empleado que toma el pedido" className="h-10 min-w-0 flex-1">
+                  <SelectValue placeholder={pedidoCreado ? empleadoNombre ?? "Sin empleado" : empleadosLoading ? "Cargando empleados…" : empleados.length ? "Elegir empleado" : "No hay empleados"} />
+                </SelectTrigger>
+                <SelectContent>{empleados.map((empleado) => <SelectItem key={empleado.id} value={empleado.id}>{`${empleado.nombre} ${empleado.apellido}`.trim()}</SelectItem>)}</SelectContent>
+              </Select>
+            )}
+            {pedidoCreado && !cierrePendiente ? (
+              <Button
+                size="lg"
+                variant="outline"
+                className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700"
+                disabled={disabled}
+                onClick={onCancelarPedido}
+              >
+                Cancelar pedido
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="flex-1"
+                disabled={disabled || pedidoCreado || cierrePendiente || items.length === 0 || !empleadoId}
+                onClick={() => { void onCrearPedido() }}
+              >
+                Crear pedido
+              </Button>
+            )}
+          </div>
+          {!pedidoCreado && !cierrePendiente && empleadosError && (
+            <p role="alert" className="text-xs text-destructive">{empleadosError}</p>
+          )}
           <Button
             size="lg"
             variant="secondary"

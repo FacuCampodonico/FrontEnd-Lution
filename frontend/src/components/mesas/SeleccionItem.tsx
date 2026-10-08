@@ -13,7 +13,10 @@ export function SeleccionItem({ item, disabled, onCantidad, onQuitar }: Seleccio
   return (
     <div className="flex flex-col gap-2 border-b py-2.5 last:border-b-0">
       <div className="flex justify-between gap-3">
-        <span className="text-sm">{item.productoNombre}</span>
+        <span className="text-sm">
+          {item.productoNombre}{" "}
+          <span className="font-mono text-muted-foreground">({formatCurrency(item.precioUnitario)})</span>
+        </span>
         <span className="font-mono text-sm">{formatCurrency(item.precioUnitario * item.cantidad)}</span>
       </div>
       <div className="flex items-center gap-2">

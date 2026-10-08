@@ -8,6 +8,7 @@ import MesaDetallePage from '@/pages/mesas/MesaDetallePage'
 import MesasPage from '@/pages/mesas/MesasPage'
 import NotFound from '@/pages/NotFound'
 import PagoPage from '@/pages/pagos/PagoPage'
+import PedidosPage from '@/pages/pedidos/PedidosPage'
 import ProductosPage from '@/pages/productos/ProductosPage'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="mesas" element={<MesasPage />} />
         <Route path="mesas/:mesaId" element={<MesaDetallePage />} />
         <Route path="mesas/:mesaId/pago" element={<PagoPage />} />
+        <Route path="pedidos" element={<PedidosPage />} />
         <Route path="insumos" element={<InsumosPage />} />
         <Route path="categorias" element={<CategoriasPage />} />
         <Route path="productos" element={<ProductosPage />} />

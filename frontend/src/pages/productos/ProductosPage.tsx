@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { useCategorias } from "@/hooks/useCategorias"
 import { useAsyncAction } from "@/hooks/useAsyncAction"
+import { useInsumos } from "@/hooks/useInsumos"
 import { useProductos } from "@/hooks/useProductos"
 import { formatCurrency } from "@/lib/utils"
 import type { Producto } from "@/types/producto"
@@ -23,6 +24,7 @@ import type { Producto } from "@/types/producto"
 export default function ProductosPage() {
   const { productos, loading, error, crearProducto, actualizarProducto, eliminarProducto } = useProductos()
   const { categorias } = useCategorias()
+  const { insumos } = useInsumos()
   const eliminar = useAsyncAction()
 
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -117,6 +119,7 @@ export default function ProductosPage() {
         onOpenChange={setModalEditarAbierto}
         producto={productoEditar}
         categorias={categorias}
+        insumos={insumos}
         onSubmit={actualizarProducto}
       />
 

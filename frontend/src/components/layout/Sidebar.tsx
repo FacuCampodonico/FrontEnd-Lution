@@ -1,13 +1,14 @@
 import { NavLink } from "react-router-dom"
-import { Boxes, ShoppingBag, Tags, UtensilsCrossed, Users } from "lucide-react"
+import { Boxes, ClipboardList, ShoppingBag, Tags, UtensilsCrossed, Users } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
   { to: "/mesas", label: "Mesas", icon: UtensilsCrossed },
+  { to: "/pedidos", label: "Pedidos", icon: ClipboardList },
+  { to: "/productos", label: "Productos", icon: ShoppingBag },
   { to: "/insumos", label: "Insumos", icon: Boxes },
   { to: "/categorias", label: "Categorías", icon: Tags },
-  { to: "/productos", label: "Productos", icon: ShoppingBag },
   { to: "/empleados", label: "Empleados", icon: Users },
 ] as const
 

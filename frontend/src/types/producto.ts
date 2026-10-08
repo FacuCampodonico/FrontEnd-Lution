@@ -18,6 +18,7 @@ export interface CrearProductoInput {
 export interface ActualizarProductoInput {
   nombre?: string
   descripcion?: string
+  precio?: number
   categoriaId?: string
 }
 
