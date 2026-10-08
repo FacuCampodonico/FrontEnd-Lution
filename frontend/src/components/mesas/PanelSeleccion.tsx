@@ -10,6 +10,7 @@ interface PanelSeleccionProps {
   pedidoCreado: boolean
   disabled: boolean
   cierrePendiente: boolean
+  puedePagar: boolean
   onCantidad: (itemId: string, cantidad: number) => Promise<unknown>
   onQuitar: (itemId: string) => Promise<unknown>
   onCrearPedido: () => Promise<unknown>
@@ -22,6 +23,7 @@ export function PanelSeleccion({
   pedidoCreado,
   disabled,
   cierrePendiente,
+  puedePagar,
   onCantidad,
   onQuitar,
   onCrearPedido,
@@ -58,18 +60,28 @@ export function PanelSeleccion({
           >
             Crear pedido
           </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            disabled={(!cierrePendiente && (!pedidoCreado || items.length === 0)) || (disabled && !cierrePendiente)}
-            onClick={onPagar}
-          >
-            {cierrePendiente ? "Continuar al cierre" : "Pagar"}
-          </Button>
-          {!pedidoCreado && !cierrePendiente && (
-            <p className="text-center font-mono text-xs text-muted-foreground">
-              Pagar se habilita al crear el pedido
-            </p>
+          {puedePagar ? (
+            <>
+              <Button
+                size="lg"
+                variant="secondary"
+                disabled={(!cierrePendiente && (!pedidoCreado || items.length === 0)) || (disabled && !cierrePendiente)}
+                onClick={onPagar}
+              >
+                {cierrePendiente ? "Continuar al cierre" : "Pagar"}
+              </Button>
+              {!pedidoCreado && !cierrePendiente && (
+                <p className="text-center font-mono text-xs text-muted-foreground">
+                  Pagar se habilita al crear el pedido
+                </p>
+              )}
+            </>
+          ) : (
+            (pedidoCreado || cierrePendiente) && (
+              <p className="text-center font-mono text-xs text-muted-foreground">
+                El cobro y el cierre los hace un administrador
+              </p>
+            )
           )}
         </div>
       </div>

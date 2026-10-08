@@ -4,12 +4,14 @@ import { CatalogoProductos } from "@/components/mesas/CatalogoProductos"
 import { PanelSeleccion } from "@/components/mesas/PanelSeleccion"
 import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { useAuth } from "@/hooks/useAuth"
 import { useMesaDetalle } from "@/hooks/useMesaDetalle"
 import type { PedidoItem } from "@/types/pedido"
 
 export default function MesaDetallePage() {
   const { mesaId } = useParams<{ mesaId: string }>()
   const navigate = useNavigate()
+  const { empleado } = useAuth()
   const { mesa, pedido, catalogo, carrito, loading, pending, bloqueado, error, refetch, agregarProducto, cambiarCantidad, quitarProducto, confirmarPedido } =
     useMesaDetalle(mesaId!)
 
@@ -47,6 +49,7 @@ export default function MesaDetallePage() {
           pedidoCreado={pedidoCreado}
           disabled={bloqueado}
           cierrePendiente={mesa?.estado === "por_pagar"}
+          puedePagar={empleado?.nivel === "admin"}
           onCantidad={cambiarCantidad}
           onQuitar={quitarProducto}
           onCrearPedido={confirmarPedido}
