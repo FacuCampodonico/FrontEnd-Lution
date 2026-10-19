@@ -1,3 +1,8 @@
+export interface RecetaProducto {
+  insumoId: string
+  cantidad: number
+}
+
 export interface Producto {
   id: string
   nombre: string
@@ -6,6 +11,7 @@ export interface Producto {
   categoriaId: string
   categoriaNombre: string
   insumoIds: string[]
+  recetas: RecetaProducto[]
 }
 
 export interface CrearProductoInput {
@@ -13,6 +19,7 @@ export interface CrearProductoInput {
   descripcion: string
   precio: number
   categoriaId: string
+  recetas?: RecetaProducto[]
 }
 
 export interface ActualizarProductoInput {

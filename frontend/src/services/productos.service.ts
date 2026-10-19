@@ -13,13 +13,14 @@ export async function getProducto(id: string | number): Promise<ProductoServicio
 
 export async function createProducto(input: CrearProductoInput): Promise<ProductoServicio> {
   if (!input.descripcion?.trim()) throw new Error("La descripción del producto es obligatoria")
-  if ("insumoIds" in input && Array.isArray(input.insumoIds) && input.insumoIds.length) {
-    throw new Error("El backend no permite guardar insumos o recetas desde productos")
-  }
   const idCategoria = Number(input.categoriaId)
   const body = {
     nombre: input.nombre, descripcion: input.descripcion,
     precio: input.precio, idCategoria,
+    recetas: (input.recetas ?? []).map((receta) => ({
+      insumoId: Number(receta.insumoId),
+      cantidad: receta.cantidad,
+    })),
   }
   const { data } = await api.post<ProductoServicio>("/productos", body)
   return data

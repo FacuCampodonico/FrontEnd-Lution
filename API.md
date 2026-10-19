@@ -166,21 +166,32 @@ Pantalla listado de Productos + modal de creación (con selección de categoría
 ```json
 {
   "nombre": "Milanesa napolitana",
+  "descripcion": "Milanesa con salsa de tomate y queso",
   "precio": 8500,
-  "categoriaId": "c_01",
-  "insumoIds": ["i_01", "i_04"]
+  "idCategoria": 1,
+  "recetas": [
+    { "insumoId": 1, "cantidad": 0.250 },
+    { "insumoId": 4, "cantidad": 100 }
+  ]
 }
 ```
+
+`recetas` es opcional y puede ser `[]`. Cada entrada indica la cantidad de un insumo por unidad de producto, en la unidad de medida del insumo (sin conversiones automáticas). La cantidad debe estar entre 0.001 y 9999999.999, con hasta 3 decimales. Los IDs de los insumos deben existir y no pueden repetirse. El producto y la receta se guardan en una misma transacción; si falla la receta, no se crea el producto. Crear una receta no descuenta stock.
 
 **Producto — response** (200/201)
 ```json
 {
-  "id": "p_01",
+  "id": "1",
   "nombre": "Milanesa napolitana",
+  "descripcion": "Milanesa con salsa de tomate y queso",
   "precio": 8500,
-  "categoriaId": "c_01",
+  "categoriaId": "1",
   "categoriaNombre": "Platos principales",
-  "insumoIds": ["i_01", "i_04"]
+  "insumoIds": ["1", "4"],
+  "recetas": [
+    { "insumoId": "1", "cantidad": 0.250 },
+    { "insumoId": "4", "cantidad": 100 }
+  ]
 }
 ```
 
