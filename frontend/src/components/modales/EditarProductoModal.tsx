@@ -72,11 +72,16 @@ export function EditarProductoModal({ open, onOpenChange, producto, categorias, 
             <p className="text-sm font-medium">Receta</p>
             {producto.insumoIds.length ? (
               <ul className="flex flex-wrap gap-1.5">
-                {producto.insumoIds.map((id) => (
-                  <li key={id} className="rounded-full border bg-muted px-2.5 py-0.5 text-xs">
-                    {insumos.find((insumo) => insumo.id === id)?.nombre ?? "Cargando…"}
-                  </li>
-                ))}
+                {producto.insumoIds.map((id) => {
+                  const insumo = insumos.find((item) => item.id === id)
+                  const receta = producto.recetas?.find((item) => item.insumoId === id)
+                  return (
+                    <li key={id} className="rounded-full border bg-muted px-2.5 py-0.5 text-xs">
+                      {insumo?.nombre ?? "Cargando…"}
+                      {receta && `: ${receta.cantidad.toLocaleString("es-AR")} ${insumo?.unidad ?? ""}`}
+                    </li>
+                  )
+                })}
               </ul>
             ) : (
               <p className="text-sm text-muted-foreground">Sin insumos.</p>

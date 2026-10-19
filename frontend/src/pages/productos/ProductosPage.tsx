@@ -24,7 +24,7 @@ import type { Producto } from "@/types/producto"
 export default function ProductosPage() {
   const { productos, loading, error, crearProducto, actualizarProducto, eliminarProducto } = useProductos()
   const { categorias } = useCategorias()
-  const { insumos } = useInsumos()
+  const { insumos, loading: cargandoInsumos, error: errorInsumos, refetch: recargarInsumos } = useInsumos()
   const eliminar = useAsyncAction()
 
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -111,6 +111,10 @@ export default function ProductosPage() {
         open={modalAbierto}
         onOpenChange={setModalAbierto}
         categoriasDisponibles={categorias}
+        insumos={insumos}
+        cargandoInsumos={cargandoInsumos}
+        errorInsumos={errorInsumos}
+        onRecargarInsumos={recargarInsumos}
         onSubmit={crearProducto}
       />
 
