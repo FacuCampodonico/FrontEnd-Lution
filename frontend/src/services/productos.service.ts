@@ -36,6 +36,10 @@ export async function updateProducto(id: string, input: ActualizarProductoInput)
     descripcion: input.descripcion,
     precio: input.precio,
     idCategoria: input.categoriaId === undefined ? undefined : Number(input.categoriaId),
+    recetas: input.recetas?.map((receta) => ({
+      insumoId: Number(receta.insumoId),
+      cantidad: receta.cantidad,
+    })),
   }
   const { data } = await api.patch<ProductoServicio | null>(`/productos/${id}`, body)
   if (!data) throw new Error("El backend no devolvió el producto actualizado")

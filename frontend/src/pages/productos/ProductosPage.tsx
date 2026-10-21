@@ -124,6 +124,9 @@ export default function ProductosPage() {
         producto={productoEditar}
         categorias={categorias}
         insumos={insumos}
+        cargandoInsumos={cargandoInsumos}
+        errorInsumos={errorInsumos}
+        onRecargarInsumos={recargarInsumos}
         onSubmit={actualizarProducto}
       />
 

@@ -1,6 +1,11 @@
 import { api } from "@/lib/api"
 import type { ActualizarItemInput, AgregarItemInput, Pedido } from "@/types/pedido"
 
+/** Con permitirSinStock el back carga el pedido aunque el stock quede negativo. */
+function stockParams(permitirSinStock: boolean) {
+  return permitirSinStock ? { params: { permitirSinStock: true } } : undefined
+}
+
 export async function getPedidos(): Promise<Pedido[]> {
   const { data } = await api.get<Pedido[]>("/pedidos")
   return data
@@ -20,12 +25,13 @@ export async function crearPedido(
   mesaId: string | number,
   items: AgregarItemInput[],
   empleadoId: string | number,
+  permitirSinStock = false,
 ): Promise<Pedido | null> {
   const body = {
     empleadoId: Number(empleadoId),
     items: items.map((item) => ({ productoId: Number(item.productoId), cantidad: item.cantidad })),
   }
-  const { data } = await api.post<Pedido | null>(`/mesas/${mesaId}/pedido`, body)
+  const { data } = await api.post<Pedido | null>(`/mesas/${mesaId}/pedido`, body, stockParams(permitirSinStock))
   return data
 }
 
@@ -34,21 +40,21 @@ export async function cancelarPedido(pedidoId: string | number): Promise<void> {
 }
 
 export async function agregarItem(
-  pedidoId: string | number, input: AgregarItemInput,
+  pedidoId: string | number, input: AgregarItemInput, permitirSinStock = false,
 ): Promise<Pedido> {
   const body = {
     productoId: Number(input.productoId), cantidad: input.cantidad,
     comentario: input.comentario,
   }
-  const { data } = await api.post<Pedido>(`/pedidos/${pedidoId}/items`, body)
+  const { data } = await api.post<Pedido>(`/pedidos/${pedidoId}/items`, body, stockParams(permitirSinStock))
   return data
 }
 
 export async function actualizarItem(
-  pedidoId: string | number, itemId: string | number, input: ActualizarItemInput,
+  pedidoId: string | number, itemId: string | number, input: ActualizarItemInput, permitirSinStock = false,
 ): Promise<Pedido> {
   const body = { cantidad: input.cantidad, comentario: input.comentario }
-  const { data } = await api.patch<Pedido>(`/pedidos/${pedidoId}/items/${itemId}`, body)
+  const { data } = await api.patch<Pedido>(`/pedidos/${pedidoId}/items/${itemId}`, body, stockParams(permitirSinStock))
   return data
 }
 

@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom"
+import { Link, NavLink, useNavigate } from "react-router-dom"
 import { Boxes, ClipboardList, LogOut, ShoppingBag, Tags, UtensilsCrossed, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -28,10 +28,10 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-52 shrink-0 flex-col gap-1 border-r border-sidebar-border bg-sidebar p-3 text-sidebar-foreground">
-      <div className="flex items-center gap-2 px-2 py-3">
-        <img src="/logo-lution.jpeg" alt="Lution" className="size-6 rounded-md object-cover" />
+      <Link to="/mesas" aria-label="Lution, ir a mesas" className="flex items-center gap-2 rounded-lg px-2 py-3 transition-opacity hover:opacity-80">
+        <img src="/logo-lution.jpeg" alt="" className="size-6 rounded-md object-cover" />
         <span className="text-base font-semibold">Lution</span>
-      </div>
+      </Link>
       <nav className="flex flex-col gap-1">
         {items.map(({ to, label, icon: Icon }) => (
           <NavLink

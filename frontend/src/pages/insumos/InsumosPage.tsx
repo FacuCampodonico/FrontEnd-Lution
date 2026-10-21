@@ -8,7 +8,11 @@ import type { Insumo } from "@/types/insumo"
 
 const columnas: DataTableColumn<Insumo>[] = [
   { header: "Nombre", cell: (i) => i.nombre },
-  { header: "Stock disponible", cell: (i) => i.stock },
+  {
+    header: "Stock disponible",
+    // Con stock ≤ 0 se resalta: los pedidos se pueden cargar igual y dejarlo negativo.
+    cell: (i) => <span className={i.stock <= 0 ? "font-medium text-destructive" : undefined}>{i.stock.toLocaleString("es-AR", { maximumFractionDigits: 3 })}</span>,
+  },
   { header: "Unidad de medida", cell: (i) => i.unidad },
 ]
 

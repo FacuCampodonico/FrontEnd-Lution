@@ -12,30 +12,35 @@ import { formatCurrency } from "@/lib/utils"
 export default function PagoPage() {
   const { mesaId } = useParams<{ mesaId: string }>()
   const navigate = useNavigate()
-  const { mesa, pedido, pago, loading, pending, error, pagado, puedeCobrar, puedeCerrar, cobrar, cerrar, refetch } = usePago(mesaId!)
+  const { mesa, pedido, pago, loading, pending, error, puedeCobrar, pendienteDeLiberar, cobrar, liberar, refetch } = usePago(mesaId!)
   const [pagaCon, setPagaCon] = useState("")
   const efectivoValido = pagaCon !== "" && Number.isFinite(Number(pagaCon)) && Number(pagaCon) > 0 && Number(pagaCon) >= (pedido?.total ?? 0)
 
-  async function handleCerrar() {
-    if (await cerrar()) navigate("/mesas")
+  async function handleLiberar() {
+    if (await liberar()) navigate("/mesas")
   }
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="Pago" subtitle={`Mesa ${mesa?.numero ?? mesaId}`} onBack={() => navigate(`/mesas/${mesaId}`)} />
+      <PageHeader title="Pago" subtitle={`Mesa ${mesa?.numero ?? mesaId}`} onBack={() => navigate(pago ? "/mesas" : `/mesas/${mesaId}`)} />
       <div className="flex flex-1 items-center justify-center p-6">
         <div className="flex w-full max-w-md flex-col gap-6">
           {loading && <p role="status">Cargando pago…</p>}
           {error && <p role="alert" className="text-destructive">{error}</p>}
-          {error && <Button variant="outline" disabled={loading || pending} onClick={refetch}>Recargar datos</Button>}
-          {pagado ? (
+          {error && !pago && <Button variant="outline" disabled={loading || pending} onClick={refetch}>Recargar datos</Button>}
+          {pago ? (
             <>
-              <p role="status">Pago registrado. La mesa queda en por_pagar hasta confirmar su cierre.</p>
-              {pago && <>
+              <p role="status">Pago registrado. La mesa quedó libre.</p>
+              <div className="flex flex-col gap-1">
                 <p>Total cobrado: {formatCurrency(pago.total)}</p>
                 <p>Vuelto: <strong>{formatCurrency(pago.vuelto)}</strong></p>
-              </>}
-              <Button disabled={!puedeCerrar} onClick={handleCerrar}>Cerrar mesa</Button>
+              </div>
+              <Button onClick={() => navigate("/mesas")}>Volver a mesas</Button>
+            </>
+          ) : pendienteDeLiberar ? (
+            <>
+              <p role="status">Esta mesa ya fue cobrada, pero quedó pendiente de liberar.</p>
+              <Button disabled={pending} onClick={handleLiberar}>{pending ? "Liberando…" : "Liberar mesa"}</Button>
             </>
           ) : pedido ? (
             <>
@@ -52,7 +57,7 @@ export default function PagoPage() {
                 <MetodoPagoCard metodo="efectivo" label="Cobrar efectivo" icon={Banknote} disabled={!puedeCobrar || !efectivoValido} onSelect={(metodo) => { void cobrar(metodo, Number(pagaCon)) }} />
                 <MetodoPagoCard metodo="tarjeta" label="Cobrar tarjeta" icon={CreditCard} disabled={!puedeCobrar} onSelect={(metodo) => { void cobrar(metodo) }} />
               </div>
-              <p className="text-sm text-muted-foreground">Después de cobrar se mostrará el vuelto y se habilitará el cierre de la mesa.</p>
+              <p className="text-sm text-muted-foreground">Al cobrar, la mesa queda libre y se muestra el vuelto.</p>
             </>
           ) : !loading && <p>No hay un pedido abierto para cobrar.</p>}
           {pending && <p role="status">Procesando…</p>}

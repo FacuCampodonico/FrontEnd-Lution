@@ -42,9 +42,9 @@ export function usePago(mesaId: string) {
     void refetch()
   }, [refetch])
 
-  const pagado = pago !== null || mesa?.estado === "por_pagar" || pedido?.estado === "pagado"
-  const puedeCobrar = !loading && !loadError && !action.pending && !pagado && pedido !== null && pedido.estado === "abierto"
-  const puedeCerrar = !loading && !action.pending && pagado
+  // Cobrar libera la mesa en el back. Solo las mesas cobradas con el flujo anterior quedan en por_pagar.
+  const pendienteDeLiberar = pago === null && mesa?.estado === "por_pagar"
+  const puedeCobrar = !loading && !loadError && !action.pending && pago === null && pedido !== null && pedido.estado === "abierto"
 
   async function cobrar(metodo: MetodoPago, pagaCon?: number) {
     if (!puedeCobrar || !pedido) return false
@@ -59,19 +59,13 @@ export function usePago(mesaId: string) {
       if (currentMesaId.current !== mesaId) return
       setPago(registrado)
       setPedido(null)
-      try {
-        const mesaActual = await getMesa(mesaId)
-        if (currentMesaId.current === mesaId) setMesa(mesaActual)
-      } catch {
-        throw new Error("El pago se registró. No se pudo actualizar la mesa; podés continuar con el cierre sin volver a cobrar.")
-      }
     })
   }
 
-  async function cerrar() {
-    if (!puedeCerrar) return false
+  async function liberar() {
+    if (!pendienteDeLiberar || action.pending) return false
     return action.run(async () => { await cerrarMesa(mesaId) })
   }
 
-  return { mesa, pedido, pago, loading, pending: action.pending, error: loadError ?? action.error, pagado, puedeCobrar, puedeCerrar, cobrar, cerrar, refetch }
+  return { mesa, pedido, pago, loading, pending: action.pending, error: loadError ?? action.error, puedeCobrar, pendienteDeLiberar, cobrar, liberar, refetch }
 }

@@ -27,6 +27,8 @@ export interface ActualizarProductoInput {
   descripcion?: string
   precio?: number
   categoriaId?: string
+  /** Si viene, reemplaza la receta completa. */
+  recetas?: RecetaProducto[]
 }
 
 export type ProductoServicio = Producto

@@ -111,7 +111,7 @@ export function PanelSeleccion({
                 disabled={(!cierrePendiente && (!pedidoCreado || items.length === 0)) || (disabled && !cierrePendiente)}
                 onClick={onPagar}
               >
-                {cierrePendiente ? "Continuar al cierre" : "Pagar"}
+                {cierrePendiente ? "Liberar mesa" : "Pagar"}
               </Button>
               {!pedidoCreado && !cierrePendiente && (
                 <p className="text-center font-mono text-xs text-muted-foreground">
@@ -122,7 +122,7 @@ export function PanelSeleccion({
           ) : (
             (pedidoCreado || cierrePendiente) && (
               <p className="text-center font-mono text-xs text-muted-foreground">
-                El cobro y el cierre los hace un administrador
+                El cobro lo hace un administrador
               </p>
             )
           )}
