@@ -133,7 +133,7 @@ export default function PedidosPage() {
           setDetalleAbierto(open)
           if (!open) setPedidoSeleccionado(null)
         }}
-        pedido={pedidoSeleccionado}
+        pedidoId={pedidoSeleccionado?.id ?? null}
         mesaNumero={pedidoSeleccionado ? getMesaNumero(pedidoSeleccionado.mesaId) : ""}
       />
     </div>

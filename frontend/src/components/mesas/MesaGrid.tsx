@@ -1,9 +1,11 @@
 import { MesaCard } from "@/components/mesas/MesaCard"
+import { EmptyState } from "@/components/shared/EmptyState"
 import type { Mesa } from "@/types/mesa"
 
 interface MesaGridProps {
   mesas: Mesa[]
   onSelectMesa: (mesa: Mesa) => void
+  emptyMessage: string
 }
 
 function SeccionHeader({ label, count }: { label: string; count: number }) {
@@ -18,9 +20,11 @@ function SeccionHeader({ label, count }: { label: string; count: number }) {
   )
 }
 
-export function MesaGrid({ mesas, onSelectMesa }: MesaGridProps) {
+export function MesaGrid({ mesas, onSelectMesa, emptyMessage }: MesaGridProps) {
   const ocupadas = mesas.filter((mesa) => mesa.estado !== "libre")
   const libres = mesas.filter((mesa) => mesa.estado === "libre")
+
+  if (mesas.length === 0) return <EmptyState title={emptyMessage} />
 
   return (
     <div className="flex flex-col gap-8">
@@ -35,14 +39,16 @@ export function MesaGrid({ mesas, onSelectMesa }: MesaGridProps) {
         </div>
       )}
 
-      <div>
-        <SeccionHeader label="Libres" count={libres.length} />
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
-          {libres.map((mesa) => (
-            <MesaCard key={mesa.id} mesa={mesa} onClick={onSelectMesa} />
-          ))}
+      {libres.length > 0 && (
+        <div>
+          <SeccionHeader label="Libres" count={libres.length} />
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
+            {libres.map((mesa) => (
+              <MesaCard key={mesa.id} mesa={mesa} onClick={onSelectMesa} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
