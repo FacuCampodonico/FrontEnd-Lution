@@ -1,7 +1,12 @@
 import { api } from "@/lib/api"
-import type { EmpleadoServicio, CrearEmpleadoInput } from "@/types/empleado"
+import type { EmpleadoServicio, CrearEmpleadoInput, RolDisponible } from "@/types/empleado"
 
 export const PASSWORD_MINIMO = 6
+
+export async function getRoles(): Promise<RolDisponible[]> {
+  const { data } = await api.get<RolDisponible[]>("/empleados/roles")
+  return data
+}
 
 export async function getEmpleados(): Promise<EmpleadoServicio[]> {
   const { data } = await api.get<EmpleadoServicio[]>("/empleados")

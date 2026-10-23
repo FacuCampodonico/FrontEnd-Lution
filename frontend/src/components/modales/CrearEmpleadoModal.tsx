@@ -12,10 +12,15 @@ interface CrearEmpleadoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   rolesDisponibles: RolDisponible[]
+  cargandoRoles: boolean
+  errorRoles: string | null
+  onRecargarRoles: () => Promise<void>
   onSubmit: (input: CrearEmpleadoInput) => Promise<unknown>
 }
 
-export function CrearEmpleadoModal({ open, onOpenChange, rolesDisponibles, onSubmit }: CrearEmpleadoModalProps) {
+export function CrearEmpleadoModal({
+  open, onOpenChange, rolesDisponibles, cargandoRoles, errorRoles, onRecargarRoles, onSubmit,
+}: CrearEmpleadoModalProps) {
   const [nombre, setNombre] = useState("")
   const [dni, setDni] = useState("")
   const [rolId, setRolId] = useState("")
@@ -38,7 +43,7 @@ export function CrearEmpleadoModal({ open, onOpenChange, rolesDisponibles, onSub
       <DialogContent showCloseButton={!pending}>
         <DialogHeader>
           <DialogTitle>Crear empleado</DialogTitle>
-          <DialogDescription>Los roles disponibles provienen de los empleados cargados.</DialogDescription>
+          <DialogDescription>Cargá sus datos, la contraseña con la que va a entrar y su rol.</DialogDescription>
         </DialogHeader>
         <Label htmlFor="empleado-nombre">Nombre completo</Label>
         <Input id="empleado-nombre" maxLength={120} disabled={pending} value={nombre} onChange={(event) => setNombre(event.target.value)} />
@@ -48,11 +53,18 @@ export function CrearEmpleadoModal({ open, onOpenChange, rolesDisponibles, onSub
         <Input id="empleado-password" type="password" autoComplete="new-password" minLength={PASSWORD_MINIMO} aria-describedby="empleado-password-ayuda" disabled={pending} value={password} onChange={(event) => setPassword(event.target.value)} />
         <p id="empleado-password-ayuda" className="text-xs text-muted-foreground">Mínimo {PASSWORD_MINIMO} caracteres. La usa para iniciar sesión con su DNI.</p>
         <Label htmlFor="empleado-rol">Rol</Label>
-        <Select disabled={pending || rolesDisponibles.length === 0} value={rolId} onValueChange={setRolId}>
-          <SelectTrigger id="empleado-rol"><SelectValue placeholder="Seleccionar rol" /></SelectTrigger>
+        <Select disabled={pending || cargandoRoles || rolesDisponibles.length === 0} value={rolId} onValueChange={setRolId}>
+          <SelectTrigger id="empleado-rol"><SelectValue placeholder={cargandoRoles ? "Cargando roles…" : "Seleccionar rol"} /></SelectTrigger>
           <SelectContent>{rolesDisponibles.map((rol) => <SelectItem key={rol.id} value={String(rol.id)}>{rol.nombre}</SelectItem>)}</SelectContent>
         </Select>
-        {rolesDisponibles.length === 0 && <p className="text-sm text-muted-foreground">No hay roles disponibles. El backend necesita un endpoint de roles para ofrecer el catálogo completo y crear el primer empleado.</p>}
+        {errorRoles ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <p role="alert" className="text-sm text-destructive">{errorRoles}</p>
+            <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => void onRecargarRoles()}>Reintentar</Button>
+          </div>
+        ) : !cargandoRoles && rolesDisponibles.length === 0 && (
+          <p className="text-sm text-muted-foreground">No hay roles cargados en la base.</p>
+        )}
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         <DialogFooter>
           <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>Cancelar</Button>

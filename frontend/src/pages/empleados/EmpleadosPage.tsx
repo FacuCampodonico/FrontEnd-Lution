@@ -4,6 +4,7 @@ import { CrearEmpleadoModal } from "@/components/modales/CrearEmpleadoModal"
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { useEmpleados } from "@/hooks/useEmpleados"
+import { useRoles } from "@/hooks/useRoles"
 import type { Empleado } from "@/types/empleado"
 
 const columnas: DataTableColumn<Empleado>[] = [
@@ -14,7 +15,8 @@ const columnas: DataTableColumn<Empleado>[] = [
 ]
 
 export default function EmpleadosPage() {
-  const { empleados, rolesDisponibles, loading, error, crearEmpleado } = useEmpleados()
+  const { empleados, loading, error, crearEmpleado } = useEmpleados()
+  const roles = useRoles()
   const [modalAbierto, setModalAbierto] = useState(false)
 
   return (
@@ -38,7 +40,10 @@ export default function EmpleadosPage() {
       <CrearEmpleadoModal
         open={modalAbierto}
         onOpenChange={setModalAbierto}
-        rolesDisponibles={rolesDisponibles}
+        rolesDisponibles={roles.roles}
+        cargandoRoles={roles.loading}
+        errorRoles={roles.error}
+        onRecargarRoles={roles.refetch}
         onSubmit={crearEmpleado}
       />
     </div>
