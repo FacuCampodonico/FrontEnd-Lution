@@ -16,6 +16,8 @@ export interface Pedido {
   estado: EstadoPedido
   empleadoId: string | null
   empleadoNombre: string | null
+  /** Hay un QR de Mercado Pago vigente: el pedido no se puede modificar. */
+  cobroMercadoPagoPendiente: boolean
 }
 
 export interface FiltrosPedidos {

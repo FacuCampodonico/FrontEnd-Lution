@@ -1,5 +1,5 @@
 import { api } from "@/lib/api"
-import type { PagoRegistrado, CrearPagoInput, PreferenciaMercadoPago } from "@/types/pago"
+import type { PagoRegistrado, CrearPagoInput, PreferenciaMercadoPago, EstadoCobroMercadoPagoResponse } from "@/types/pago"
 
 export async function createPago(input: CrearPagoInput): Promise<PagoRegistrado> {
   const tipo = input.metodo === "efectivo" ? "EFECTIVO" : "TARJETA"
@@ -19,7 +19,12 @@ export async function crearPreferenciaMercadoPago(pedidoId: string): Promise<Pre
   return data
 }
 
-export async function confirmarPagoMercadoPago(pedidoId: string, paymentId: string): Promise<PagoRegistrado> {
-  const { data } = await api.post<PagoRegistrado>(`/pedidos/${pedidoId}/pago/mercadopago/confirmar`, { paymentId })
+/** El back consulta a Mercado Pago y, si el cliente ya pagó, cierra el pedido. */
+export async function getEstadoCobroMercadoPago(pedidoId: string): Promise<EstadoCobroMercadoPagoResponse> {
+  const { data } = await api.get<EstadoCobroMercadoPagoResponse>(`/pedidos/${pedidoId}/pago/mercadopago/estado`)
   return data
+}
+
+export async function cancelarCobroMercadoPago(pedidoId: string): Promise<void> {
+  await api.delete(`/pedidos/${pedidoId}/pago/mercadopago`)
 }

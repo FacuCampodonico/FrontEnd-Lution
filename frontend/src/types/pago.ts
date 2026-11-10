@@ -20,11 +20,14 @@ export interface PagoRegistrado {
 export interface PreferenciaMercadoPago {
   preferenceId: string
   checkoutUrl: string
+  /** Cuándo vence el QR (ISO 8601). */
+  expiraEn: string
 }
 
-/** Query params con los que Mercado Pago vuelve a la pantalla de pago. */
-export interface RetornoMercadoPago {
-  pedidoId: string
-  paymentId: string | null
-  status: string | null
+export type EstadoCobroMercadoPago = "sin_cobro" | "pendiente" | "pagado"
+
+export interface EstadoCobroMercadoPagoResponse {
+  estado: EstadoCobroMercadoPago
+  expiraEn?: string
+  total?: number
 }
