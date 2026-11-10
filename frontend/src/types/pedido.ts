@@ -18,6 +18,21 @@ export interface Pedido {
   empleadoNombre: string | null
 }
 
+export interface FiltrosPedidos {
+  mesaId?: string
+  empleadoId?: string
+  estado?: EstadoPedido
+  pagina?: number
+  limite?: number
+}
+
+export interface PedidosPaginados {
+  data: Pedido[]
+  total: number
+  pagina: number
+  limite: number
+}
+
 export interface AgregarItemInput {
   productoId: string
   cantidad: number

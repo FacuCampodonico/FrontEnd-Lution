@@ -1,5 +1,5 @@
 import { api } from "@/lib/api"
-import type { PagoRegistrado, CrearPagoInput } from "@/types/pago"
+import type { PagoRegistrado, CrearPagoInput, PreferenciaMercadoPago } from "@/types/pago"
 
 export async function createPago(input: CrearPagoInput): Promise<PagoRegistrado> {
   const tipo = input.metodo === "efectivo" ? "EFECTIVO" : "TARJETA"
@@ -11,5 +11,15 @@ export async function createPago(input: CrearPagoInput): Promise<PagoRegistrado>
     ? { tipo, pagaCon }
     : { tipo, titular: input.titular, marca: input.marca, cuotas: input.cuotas }
   const { data } = await api.post<PagoRegistrado>(`/pedidos/${input.pedidoId}/pago`, body)
+  return data
+}
+
+export async function crearPreferenciaMercadoPago(pedidoId: string): Promise<PreferenciaMercadoPago> {
+  const { data } = await api.post<PreferenciaMercadoPago>(`/pedidos/${pedidoId}/pago/mercadopago`)
+  return data
+}
+
+export async function confirmarPagoMercadoPago(pedidoId: string, paymentId: string): Promise<PagoRegistrado> {
+  const { data } = await api.post<PagoRegistrado>(`/pedidos/${pedidoId}/pago/mercadopago/confirmar`, { paymentId })
   return data
 }

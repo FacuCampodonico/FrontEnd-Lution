@@ -1,13 +1,13 @@
 import { api } from "@/lib/api"
-import type { ActualizarItemInput, AgregarItemInput, Pedido } from "@/types/pedido"
+import type { ActualizarItemInput, AgregarItemInput, FiltrosPedidos, Pedido, PedidosPaginados } from "@/types/pedido"
 
 /** Con permitirSinStock el back carga el pedido aunque el stock quede negativo. */
 function stockParams(permitirSinStock: boolean) {
   return permitirSinStock ? { params: { permitirSinStock: true } } : undefined
 }
 
-export async function getPedidos(): Promise<Pedido[]> {
-  const { data } = await api.get<Pedido[]>("/pedidos")
+export async function getPedidos(filtros: FiltrosPedidos = {}): Promise<PedidosPaginados> {
+  const { data } = await api.get<PedidosPaginados>("/pedidos", { params: filtros })
   return data
 }
 
