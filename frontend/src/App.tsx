@@ -10,6 +10,7 @@ import MesaDetallePage from '@/pages/mesas/MesaDetallePage'
 import MesasPage from '@/pages/mesas/MesasPage'
 import NotFound from '@/pages/NotFound'
 import PagoPage from '@/pages/pagos/PagoPage'
+import PagoRecibidoPage from '@/pages/pagos/PagoRecibidoPage'
 import PedidosPage from '@/pages/pedidos/PedidosPage'
 import ProductosPage from '@/pages/productos/ProductosPage'
 
@@ -17,6 +18,7 @@ function App() {
   return (
     <Routes>
       <Route path="login" element={<LoginPage />} />
+      <Route path="pago-recibido" element={<PagoRecibidoPage />} />
       <Route element={<RutaProtegida />}>
         <Route element={<AppLayout />}>
           <Route index element={<Navigate to="/mesas" replace />} />
