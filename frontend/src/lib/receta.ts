@@ -1,40 +1,40 @@
-import type { Insumo } from "@/types/insumo"
-import type { RecetaProducto } from "@/types/producto"
+import type { Supply } from "@/types/insumo"
+import type { RecipeItem } from "@/types/producto"
 
-/** Fila editable de una receta: la cantidad queda como texto mientras se tipea. */
-export interface FilaReceta {
+/** Editable recipe row: the quantity stays as text while it's being typed. */
+export interface RecipeRow {
   id: number
   insumoId: string
   cantidad: string
 }
 
-let siguienteId = 0
+let nextId = 0
 
-export function nuevaFila(insumoId: string, cantidad = ""): FilaReceta {
-  return { id: siguienteId++, insumoId, cantidad }
+export function newRow(insumoId: string, cantidad = ""): RecipeRow {
+  return { id: nextId++, insumoId, cantidad }
 }
 
-export function filasDesdeReceta(recetas: RecetaProducto[]): FilaReceta[] {
-  // Las recetas cargadas antes de tener cantidades vienen con 0: se muestran como pendientes, no como error.
-  return recetas.map((receta) => nuevaFila(receta.insumoId, receta.cantidad > 0 ? String(receta.cantidad) : ""))
+export function rowsFromRecipe(recipe: RecipeItem[]): RecipeRow[] {
+  // Recipes saved before quantities existed come with 0: they show as pending, not as an error.
+  return recipe.map((item) => newRow(item.insumoId, item.cantidad > 0 ? String(item.cantidad) : ""))
 }
 
-export function cantidadValida(cantidad: string) {
-  const numero = Number(cantidad)
-  return cantidad !== "" && Number.isFinite(numero) && numero >= 0.001
-    && numero <= 9999999.999 && (String(numero).split(".")[1]?.length ?? 0) <= 3
+export function isValidQuantity(quantity: string) {
+  const value = Number(quantity)
+  return quantity !== "" && Number.isFinite(value) && value >= 0.001
+    && value <= 9999999.999 && (String(value).split(".")[1]?.length ?? 0) <= 3
 }
 
-export function recetaValida(filas: FilaReceta[], insumos: Insumo[]) {
-  return new Set(filas.map((fila) => fila.insumoId)).size === filas.length
-    && filas.every((fila) => insumos.some((insumo) => insumo.id === fila.insumoId) && cantidadValida(fila.cantidad))
+export function isValidRecipe(rows: RecipeRow[], supplies: Supply[]) {
+  return new Set(rows.map((row) => row.insumoId)).size === rows.length
+    && rows.every((row) => supplies.some((supply) => supply.id === row.insumoId) && isValidQuantity(row.cantidad))
 }
 
-export function aReceta(filas: FilaReceta[]): RecetaProducto[] {
-  return filas.map((fila) => ({ insumoId: fila.insumoId, cantidad: Number(fila.cantidad) }))
+export function toRecipe(rows: RecipeRow[]): RecipeItem[] {
+  return rows.map((row) => ({ insumoId: row.insumoId, cantidad: Number(row.cantidad) }))
 }
 
-export function mismaReceta(a: RecetaProducto[], b: RecetaProducto[]) {
-  const cantidades = new Map(a.map((receta) => [receta.insumoId, receta.cantidad]))
-  return a.length === b.length && b.every((receta) => cantidades.get(receta.insumoId) === receta.cantidad)
+export function isSameRecipe(a: RecipeItem[], b: RecipeItem[]) {
+  const quantities = new Map(a.map((item) => [item.insumoId, item.cantidad]))
+  return a.length === b.length && b.every((item) => quantities.get(item.insumoId) === item.cantidad)
 }

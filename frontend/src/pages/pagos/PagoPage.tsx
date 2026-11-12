@@ -11,56 +11,56 @@ import { usePago } from "@/hooks/usePago"
 import { formatCurrency } from "@/lib/utils"
 
 export default function PagoPage() {
-  const { mesaId } = useParams<{ mesaId: string }>()
+  const { tableId } = useParams<{ tableId: string }>()
   const navigate = useNavigate()
-  const { mesa, pedido, pago, loading, pending, error, aviso, puedeCobrar, pendienteDeLiberar, qr, esperandoCobro, cobrar, generarQr, cancelarQr, liberar, refetch } = usePago(mesaId!)
-  const [pagaCon, setPagaCon] = useState("")
-  const [linkCopiado, setLinkCopiado] = useState(false)
-  const efectivoValido = pagaCon !== "" && Number.isFinite(Number(pagaCon)) && Number(pagaCon) > 0 && Number(pagaCon) >= (pedido?.total ?? 0)
+  const { table, order, payment, loading, pending, error, notice, canCharge, pendingRelease, qr, awaitingCharge, charge, generateQr, cancelQr, release, refetch } = usePago(tableId!)
+  const [cashReceived, setCashReceived] = useState("")
+  const [linkCopied, setLinkCopied] = useState(false)
+  const isValidCash = cashReceived !== "" && Number.isFinite(Number(cashReceived)) && Number(cashReceived) > 0 && Number(cashReceived) >= (order?.total ?? 0)
 
-  async function copiarLink() {
+  async function copyLink() {
     if (!qr) return
     try {
       await navigator.clipboard.writeText(qr.checkoutUrl)
-      setLinkCopiado(true)
-      window.setTimeout(() => setLinkCopiado(false), 2000)
+      setLinkCopied(true)
+      window.setTimeout(() => setLinkCopied(false), 2000)
     } catch {
-      // Sin permiso de portapapeles: el cajero puede usar el QR.
+      // No clipboard permission: the cashier can use the QR.
     }
   }
 
-  async function handleLiberar() {
-    if (await liberar()) navigate("/mesas")
+  async function handleRelease() {
+    if (await release()) navigate("/mesas")
   }
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="Pago" subtitle={`Mesa ${mesa?.numero ?? mesaId}`} onBack={() => navigate(pago ? "/mesas" : `/mesas/${mesaId}`)} />
+      <PageHeader title="Pago" subtitle={`Mesa ${table?.numero ?? tableId}`} onBack={() => navigate(payment ? "/mesas" : `/mesas/${tableId}`)} />
       <div className="flex flex-1 items-center justify-center p-6">
         <div className="flex w-full max-w-md flex-col gap-6">
           {loading && <p role="status">Cargando pago…</p>}
           {error && <p role="alert" className="text-destructive">{error}</p>}
-          {aviso && !error && <p role="status" className="text-sm text-muted-foreground">{aviso}</p>}
-          {error && !pago && <Button variant="outline" disabled={loading || pending} onClick={refetch}>Recargar datos</Button>}
-          {pago ? (
+          {notice && !error && <p role="status" className="text-sm text-muted-foreground">{notice}</p>}
+          {error && !payment && <Button variant="outline" disabled={loading || pending} onClick={refetch}>Recargar datos</Button>}
+          {payment ? (
             <>
               <p role="status">Pago registrado. La mesa quedó libre.</p>
               <div className="flex flex-col gap-1">
-                <p>Total cobrado: {formatCurrency(pago.total)}</p>
-                <p>Vuelto: <strong>{formatCurrency(pago.vuelto)}</strong></p>
+                <p>Total cobrado: {formatCurrency(payment.total)}</p>
+                <p>Vuelto: <strong>{formatCurrency(payment.vuelto)}</strong></p>
               </div>
               <Button onClick={() => navigate("/mesas")}>Volver a mesas</Button>
             </>
-          ) : pendienteDeLiberar ? (
+          ) : pendingRelease ? (
             <>
               <p role="status">Esta mesa ya fue cobrada, pero quedó pendiente de liberar.</p>
-              <Button disabled={pending} onClick={handleLiberar}>{pending ? "Liberando…" : "Liberar mesa"}</Button>
+              <Button disabled={pending} onClick={handleRelease}>{pending ? "Liberando…" : "Liberar mesa"}</Button>
             </>
-          ) : pedido && esperandoCobro ? (
+          ) : order && awaitingCharge ? (
             <>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Cobrar con Mercado Pago</p>
-                <p className="font-mono text-4xl">{formatCurrency(pedido.total)}</p>
+                <p className="font-mono text-4xl">{formatCurrency(order.total)}</p>
               </div>
               {qr ? (
                 <div className="flex flex-col items-center gap-3">
@@ -68,32 +68,32 @@ export default function PagoPage() {
                     <QRCodeSVG value={qr.checkoutUrl} size={240} marginSize={0} title="QR de pago de Mercado Pago" />
                   </div>
                   <p className="text-center text-sm text-muted-foreground">El cliente escanea el QR con su celular y paga. Esta pantalla se actualiza sola cuando el pago se acredita.</p>
-                  <Button variant="outline" size="sm" onClick={() => copiarLink()}>{linkCopiado ? "Link copiado" : "Copiar link de pago"}</Button>
+                  <Button variant="outline" size="sm" onClick={() => copyLink()}>{linkCopied ? "Link copiado" : "Copiar link de pago"}</Button>
                 </div>
               ) : (
                 <p role="status" className="text-center text-sm text-muted-foreground">Hay un cobro con Mercado Pago en curso para este pedido. Esperando el pago… Si el QR se perdió, generá uno nuevo.</p>
               )}
               <p role="status" className="text-center text-sm">Esperando el pago…</p>
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" disabled={pending} onClick={() => cancelarQr()}>Cancelar cobro</Button>
-                {!qr && <Button className="flex-1" disabled={pending} onClick={() => generarQr()}>Generar QR nuevo</Button>}
+                <Button variant="outline" className="flex-1" disabled={pending} onClick={() => cancelQr()}>Cancelar cobro</Button>
+                {!qr && <Button className="flex-1" disabled={pending} onClick={() => generateQr()}>Generar QR nuevo</Button>}
               </div>
             </>
-          ) : pedido ? (
+          ) : order ? (
             <>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Total a cobrar</p>
-                <p className="font-mono text-4xl">{formatCurrency(pedido.total)}</p>
+                <p className="font-mono text-4xl">{formatCurrency(order.total)}</p>
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="paga-con">Monto recibido en efectivo</Label>
-                <Input id="paga-con" type="number" min="0.01" step="0.01" disabled={!puedeCobrar} value={pagaCon} onChange={(event) => setPagaCon(event.target.value)} />
-                {pagaCon !== "" && !efectivoValido && <p className="text-sm text-destructive">El monto recibido debe cubrir el total y ser mayor que cero.</p>}
+                <Label htmlFor="cash-received">Monto recibido en efectivo</Label>
+                <Input id="cash-received" type="number" min="0.01" step="0.01" disabled={!canCharge} value={cashReceived} onChange={(event) => setCashReceived(event.target.value)} />
+                {cashReceived !== "" && !isValidCash && <p className="text-sm text-destructive">El monto recibido debe cubrir el total y ser mayor que cero.</p>}
               </div>
               <div className="grid grid-cols-3 gap-3.5">
-                <MetodoPagoCard metodo="efectivo" label="Cobrar efectivo" icon={Banknote} disabled={!puedeCobrar || !efectivoValido} onSelect={() => cobrar("efectivo", Number(pagaCon))} />
-                <MetodoPagoCard metodo="tarjeta" label="Cobrar tarjeta" icon={CreditCard} disabled={!puedeCobrar} onSelect={() => cobrar("tarjeta")} />
-                <MetodoPagoCard metodo="mercadopago" label="Mercado Pago" icon={Wallet} disabled={!puedeCobrar} onSelect={() => generarQr()} />
+                <MetodoPagoCard method="cash" label="Cobrar efectivo" icon={Banknote} disabled={!canCharge || !isValidCash} onSelect={() => charge("cash", Number(cashReceived))} />
+                <MetodoPagoCard method="card" label="Cobrar tarjeta" icon={CreditCard} disabled={!canCharge} onSelect={() => charge("card")} />
+                <MetodoPagoCard method="mercadopago" label="Mercado Pago" icon={Wallet} disabled={!canCharge} onSelect={() => generateQr()} />
               </div>
               <p className="text-sm text-muted-foreground">Al cobrar, la mesa queda libre y se muestra el vuelto. Con Mercado Pago se muestra un QR para que el cliente pague desde su celular y el pago se confirma solo.</p>
             </>

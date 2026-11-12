@@ -1,24 +1,24 @@
 import { useCallback, useEffect, useState } from "react"
 
 import { useAsyncAction } from "@/hooks/useAsyncAction"
-import { createEmpleado, getEmpleados } from "@/services/empleados.service"
-import type { CrearEmpleadoInput, Empleado } from "@/types/empleado"
+import { createEmployee as createEmployeeService, getEmployees } from "@/services/empleados.service"
+import type { CreateEmployeeInput, Employee } from "@/types/empleado"
 
-export function useEmpleados(habilitado = true) {
-  const [empleados, setEmpleados] = useState<Empleado[]>([])
-  const { pending: loading, error, run } = useAsyncAction({ initialPending: habilitado, failureMessage: "No se pudieron cargar los empleados" })
+export function useEmpleados(enabled = true) {
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const { pending: loading, error, run } = useAsyncAction({ initialPending: enabled, failureMessage: "No se pudieron cargar los empleados" })
 
-  const refetch = useCallback(() => run(async () => setEmpleados(await getEmpleados())), [run])
+  const refetch = useCallback(() => run(async () => setEmployees(await getEmployees())), [run])
 
   useEffect(() => {
-    if (habilitado) void refetch()
-  }, [habilitado, refetch])
+    if (enabled) void refetch()
+  }, [enabled, refetch])
 
-  async function crearEmpleado(input: CrearEmpleadoInput) {
-    const nuevo = await createEmpleado(input)
-    setEmpleados((prev) => [...prev, nuevo])
-    return nuevo
+  async function createEmployee(input: CreateEmployeeInput) {
+    const created = await createEmployeeService(input)
+    setEmployees((prev) => [...prev, created])
+    return created
   }
 
-  return { empleados, loading, error, refetch, crearEmpleado }
+  return { employees, loading, error, refetch, createEmployee }
 }

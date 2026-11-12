@@ -1,4 +1,4 @@
-export interface PedidoItem {
+export interface OrderItem {
   id: string
   productoId: string
   productoNombre: string
@@ -6,42 +6,42 @@ export interface PedidoItem {
   cantidad: number
 }
 
-export type EstadoPedido = "abierto" | "pagado"
+export type OrderStatus = "abierto" | "pagado"
 
-export interface Pedido {
+export interface Order {
   id: string
   mesaId: string
-  items: PedidoItem[]
+  items: OrderItem[]
   total: number
-  estado: EstadoPedido
+  estado: OrderStatus
   empleadoId: string | null
   empleadoNombre: string | null
-  /** Hay un QR de Mercado Pago vigente: el pedido no se puede modificar. */
+  /** There is a live Mercado Pago QR: the order can't be modified. */
   cobroMercadoPagoPendiente: boolean
 }
 
-export interface FiltrosPedidos {
+export interface OrderFilters {
   mesaId?: string
   empleadoId?: string
-  estado?: EstadoPedido
+  estado?: OrderStatus
   pagina?: number
   limite?: number
 }
 
-export interface PedidosPaginados {
-  data: Pedido[]
+export interface PaginatedOrders {
+  data: Order[]
   total: number
   pagina: number
   limite: number
 }
 
-export interface AgregarItemInput {
+export interface AddItemInput {
   productoId: string
   cantidad: number
   comentario?: string
 }
 
-export interface ActualizarItemInput {
+export interface UpdateItemInput {
   cantidad?: number
   comentario?: string
 }

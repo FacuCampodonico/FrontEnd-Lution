@@ -5,9 +5,9 @@ import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { useEmpleados } from "@/hooks/useEmpleados"
 import { useRoles } from "@/hooks/useRoles"
-import type { Empleado } from "@/types/empleado"
+import type { Employee } from "@/types/empleado"
 
-const columnas: DataTableColumn<Empleado>[] = [
+const columns: DataTableColumn<Employee>[] = [
   { header: "Nombre", cell: (e) => e.nombre },
   { header: "DNI", cell: (e) => e.dni },
   { header: "Rol", cell: (e) => (e.rolNombre ?? "Sin información") },
@@ -15,36 +15,36 @@ const columnas: DataTableColumn<Empleado>[] = [
 ]
 
 export default function EmpleadosPage() {
-  const { empleados, loading, error, crearEmpleado } = useEmpleados()
+  const { employees, loading, error, createEmployee } = useEmpleados()
   const roles = useRoles()
-  const [modalAbierto, setModalAbierto] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
 
   return (
     <div className="flex h-full flex-col">
       <PageHeader
         title="Empleados"
         actionLabel="Crear empleado"
-        onAction={() => setModalAbierto(true)}
+        onAction={() => setCreateOpen(true)}
       />
       <div className="flex-1 overflow-y-auto p-7">
         {loading && <p role="status">Cargando empleados…</p>}
         {error && <p role="alert">{error}</p>}
         <DataTable
-          columns={columnas}
-          data={empleados}
+          columns={columns}
+          data={employees}
           getRowKey={(e) => e.id}
           emptyMessage="Todavía no cargaste empleados."
         />
       </div>
 
       <CrearEmpleadoModal
-        open={modalAbierto}
-        onOpenChange={setModalAbierto}
-        rolesDisponibles={roles.roles}
-        cargandoRoles={roles.loading}
-        errorRoles={roles.error}
-        onRecargarRoles={roles.refetch}
-        onSubmit={crearEmpleado}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        availableRoles={roles.roles}
+        loadingRoles={roles.loading}
+        rolesError={roles.error}
+        onReloadRoles={roles.refetch}
+        onSubmit={createEmployee}
       />
     </div>
   )

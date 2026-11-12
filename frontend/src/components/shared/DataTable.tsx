@@ -25,7 +25,7 @@ interface DataTableProps<T> {
   emptyMessage?: string
 }
 
-type Orden = { header: string; direccion: "asc" | "desc" } | null
+type Sort = { header: string; direction: "asc" | "desc" } | null
 
 export function DataTable<T>({
   columns,
@@ -33,28 +33,28 @@ export function DataTable<T>({
   getRowKey,
   emptyMessage = "No hay resultados todavía.",
 }: DataTableProps<T>) {
-  const [orden, setOrden] = useState<Orden>(null)
+  const [sort, setSort] = useState<Sort>(null)
 
   if (data.length === 0) {
     return <EmptyState title={emptyMessage} />
   }
 
-  const sortValue = orden && columns.find((column) => column.header === orden.header)?.sortValue
-  const filas = orden && sortValue
+  const sortValue = sort && columns.find((column) => column.header === sort.header)?.sortValue
+  const rows = sort && sortValue
     ? [...data].sort((a, b) => {
-        const valorA = sortValue(a)
-        const valorB = sortValue(b)
-        const comparacion = typeof valorA === "number" && typeof valorB === "number"
-          ? valorA - valorB
-          : String(valorA).localeCompare(String(valorB), "es", { numeric: true })
-        return orden.direccion === "asc" ? comparacion : -comparacion
+        const valueA = sortValue(a)
+        const valueB = sortValue(b)
+        const comparison = typeof valueA === "number" && typeof valueB === "number"
+          ? valueA - valueB
+          : String(valueA).localeCompare(String(valueB), "es", { numeric: true })
+        return sort.direction === "asc" ? comparison : -comparison
       })
     : data
 
-  function cambiarOrden(header: string) {
-    setOrden((actual) => {
-      if (actual?.header !== header) return { header, direccion: "asc" }
-      if (actual.direccion === "asc") return { header, direccion: "desc" }
+  function toggleSort(header: string) {
+    setSort((current) => {
+      if (current?.header !== header) return { header, direction: "asc" }
+      if (current.direction === "asc") return { header, direction: "desc" }
       return null
     })
   }
@@ -65,22 +65,22 @@ export function DataTable<T>({
         <TableHeader>
           <TableRow>
             {columns.map((column) => {
-              const activa = orden?.header === column.header
-              const Icono = !activa ? ArrowUpDown : orden.direccion === "asc" ? ArrowUp : ArrowDown
+              const active = sort?.header === column.header
+              const Icon = !active ? ArrowUpDown : sort.direction === "asc" ? ArrowUp : ArrowDown
               return (
                 <TableHead
                   key={column.header}
                   className={column.className}
-                  aria-sort={activa ? (orden.direccion === "asc" ? "ascending" : "descending") : undefined}
+                  aria-sort={active ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}
                 >
                   {column.sortValue ? (
                     <button
                       type="button"
-                      onClick={() => cambiarOrden(column.header)}
+                      onClick={() => toggleSort(column.header)}
                       className="-mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 hover:text-foreground"
                     >
                       {column.header}
-                      <Icono className={activa ? "size-3.5" : "size-3.5 opacity-40"} />
+                      <Icon className={active ? "size-3.5" : "size-3.5 opacity-40"} />
                     </button>
                   ) : (
                     column.header
@@ -91,7 +91,7 @@ export function DataTable<T>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filas.map((row) => (
+          {rows.map((row) => (
             <TableRow key={getRowKey(row)}>
               {columns.map((column) => (
                 <TableCell key={column.header} className={column.className}>

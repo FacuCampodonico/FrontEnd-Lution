@@ -4,24 +4,24 @@ import { Boxes, ClipboardList, LogOut, ShoppingBag, Tags, UtensilsCrossed, Users
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { cn } from "@/lib/utils"
-import type { Nivel } from "@/types/auth"
+import type { AccessLevel } from "@/types/auth"
 
-const NAV_ITEMS: { to: string; label: string; icon: typeof UtensilsCrossed; niveles: readonly Nivel[] }[] = [
-  { to: "/mesas", label: "Mesas", icon: UtensilsCrossed, niveles: ["admin", "mozo"] },
-  { to: "/pedidos", label: "Pedidos", icon: ClipboardList, niveles: ["admin"] },
-  { to: "/productos", label: "Productos", icon: ShoppingBag, niveles: ["admin"] },
-  { to: "/insumos", label: "Insumos", icon: Boxes, niveles: ["admin"] },
-  { to: "/categorias", label: "Categorías", icon: Tags, niveles: ["admin"] },
-  { to: "/empleados", label: "Empleados", icon: Users, niveles: ["admin"] },
+const NAV_ITEMS: { to: string; label: string; icon: typeof UtensilsCrossed; levels: readonly AccessLevel[] }[] = [
+  { to: "/mesas", label: "Mesas", icon: UtensilsCrossed, levels: ["admin", "mozo"] },
+  { to: "/pedidos", label: "Pedidos", icon: ClipboardList, levels: ["admin"] },
+  { to: "/productos", label: "Productos", icon: ShoppingBag, levels: ["admin"] },
+  { to: "/insumos", label: "Insumos", icon: Boxes, levels: ["admin"] },
+  { to: "/categorias", label: "Categorías", icon: Tags, levels: ["admin"] },
+  { to: "/empleados", label: "Empleados", icon: Users, levels: ["admin"] },
 ]
 
 export function Sidebar() {
-  const { empleado, logout } = useAuth()
+  const { employee, logout } = useAuth()
   const navigate = useNavigate()
 
-  const items = NAV_ITEMS.filter((item) => empleado !== null && item.niveles.includes(empleado.nivel))
+  const items = NAV_ITEMS.filter((item) => employee !== null && item.levels.includes(employee.nivel))
 
-  function cerrarSesion() {
+  function handleLogout() {
     logout()
     navigate("/login", { replace: true })
   }
@@ -51,13 +51,13 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      {empleado && (
+      {employee && (
         <div className="mt-auto flex flex-col gap-2 border-t border-sidebar-border pt-3">
           <div className="min-w-0 px-3">
-            <p className="truncate text-sm font-medium">{empleado.nombre}</p>
-            <p className="truncate text-xs text-sidebar-foreground/70">{empleado.rolNombre}</p>
+            <p className="truncate text-sm font-medium">{employee.nombre}</p>
+            <p className="truncate text-xs text-sidebar-foreground/70">{employee.rolNombre}</p>
           </div>
-          <Button variant="ghost" size="sm" className="justify-start px-3" onClick={cerrarSesion}>
+          <Button variant="ghost" size="sm" className="justify-start px-3" onClick={handleLogout}>
             <LogOut />
             Cerrar sesión
           </Button>

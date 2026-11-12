@@ -1,16 +1,16 @@
 import { CatalogoProductoItem } from "@/components/mesas/CatalogoProductoItem"
 import { EmptyState } from "@/components/shared/EmptyState"
-import type { Producto } from "@/types/producto"
+import type { Product } from "@/types/producto"
 
 interface CatalogoProductosProps {
-  productos: Producto[]
+  products: Product[]
   disabled?: boolean
-  onAgregar: (producto: Producto) => Promise<unknown>
+  onAdd: (product: Product) => Promise<unknown>
 }
 
 export function CatalogoProductos({
-  productos,
-  onAgregar,
+  products,
+  onAdd,
   disabled,
 }: CatalogoProductosProps) {
   return (
@@ -18,16 +18,16 @@ export function CatalogoProductos({
       <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
         Productos
       </h2>
-      {productos.length === 0 ? (
+      {products.length === 0 ? (
         <EmptyState title="Todavía no hay productos cargados." />
       ) : (
         <div className="rounded-xl border bg-background">
-          {productos.map((producto) => (
+          {products.map((product) => (
             <CatalogoProductoItem
-              key={producto.id}
-              producto={producto}
+              key={product.id}
+              product={product}
               disabled={disabled}
-              onAgregar={onAgregar}
+              onAdd={onAdd}
             />
           ))}
         </div>

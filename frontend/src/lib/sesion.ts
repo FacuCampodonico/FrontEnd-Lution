@@ -1,33 +1,33 @@
 const TOKEN_KEY = "lution.token"
 
-export const SESION_EXPIRADA = "lution:sesion-expirada"
+export const SESSION_EXPIRED = "lution:session-expired"
 
-let tokenEnMemoria: string | null = null
+let tokenInMemory: string | null = null
 
 export function getToken(): string | null {
-  if (tokenEnMemoria !== null) return tokenEnMemoria
+  if (tokenInMemory !== null) return tokenInMemory
   try {
-    tokenEnMemoria = localStorage.getItem(TOKEN_KEY)
+    tokenInMemory = localStorage.getItem(TOKEN_KEY)
   } catch {
-    // La sesión dura lo que la pestaña.
+    // The session lasts as long as the tab.
   }
-  return tokenEnMemoria
+  return tokenInMemory
 }
 
 export function setToken(token: string) {
-  tokenEnMemoria = token
+  tokenInMemory = token
   try {
     localStorage.setItem(TOKEN_KEY, token)
   } catch {
-    // La sesión dura lo que la pestaña.
+    // The session lasts as long as the tab.
   }
 }
 
 export function clearToken() {
-  tokenEnMemoria = null
+  tokenInMemory = null
   try {
     localStorage.removeItem(TOKEN_KEY)
   } catch {
-    // Nada que limpiar.
+    // Nothing to clear.
   }
 }

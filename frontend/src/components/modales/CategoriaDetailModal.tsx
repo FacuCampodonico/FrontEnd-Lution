@@ -4,29 +4,29 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
-import type { Categoria } from "@/types/categoria"
-import type { Producto } from "@/types/producto"
+import type { Category } from "@/types/categoria"
+import type { Product } from "@/types/producto"
 
-interface CategoriaDetalleModalProps {
+interface CategoriaDetailModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  categoria: Categoria | null
-  productos: Producto[]
-  onAddProducto: (categoriaId: string, productoId: string) => Promise<unknown>
+  category: Category | null
+  products: Product[]
+  onAddProduct: (categoryId: string, productId: string) => Promise<unknown>
 }
 
-export function CategoriaDetailModal({ open, onOpenChange, categoria, productos, onAddProducto }: CategoriaDetalleModalProps) {
-  const [productoId, setProductoId] = useState("")
+export function CategoriaDetailModal({ open, onOpenChange, category, products, onAddProduct }: CategoriaDetailModalProps) {
+  const [productId, setProductId] = useState("")
   const { pending, error, run } = useAsyncAction()
-  if (!categoria) return null
-  const asignados = productos.filter((producto) => producto.categoriaId === categoria.id)
-  const disponibles = productos.filter((producto) => producto.categoriaId !== categoria.id)
+  if (!category) return null
+  const assigned = products.filter((product) => product.categoriaId === category.id)
+  const available = products.filter((product) => product.categoriaId !== category.id)
 
-  async function handleAgregar() {
-    if (!categoria || !productoId) return
+  async function handleAdd() {
+    if (!category || !productId) return
     await run(async () => {
-      await onAddProducto(categoria.id, productoId)
-      setProductoId("")
+      await onAddProduct(category.id, productId)
+      setProductId("")
     })
   }
 
@@ -34,23 +34,23 @@ export function CategoriaDetailModal({ open, onOpenChange, categoria, productos,
     <Dialog open={open} onOpenChange={(value) => !pending && onOpenChange(value)}>
       <DialogContent showCloseButton={!pending}>
         <DialogHeader>
-          <DialogTitle>{categoria.nombre}</DialogTitle>
+          <DialogTitle>{category.nombre}</DialogTitle>
           <DialogDescription>
-            {asignados.length === 1 ? "1 producto" : `${asignados.length} productos`} en esta categoría.
+            {assigned.length === 1 ? "1 producto" : `${assigned.length} productos`} en esta categoría.
           </DialogDescription>
         </DialogHeader>
 
         <section className="flex flex-col gap-2">
           <h3 className="text-sm font-medium">Productos</h3>
-          {asignados.length ? (
+          {assigned.length ? (
             <ul className="divide-y rounded-md border">
-              {asignados.map((producto) => (
-                <li key={producto.id} className="flex items-center justify-between gap-3 px-3 py-2">
+              {assigned.map((product) => (
+                <li key={product.id} className="flex items-center justify-between gap-3 px-3 py-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{producto.nombre}</p>
-                    {producto.descripcion && <p className="truncate text-xs text-muted-foreground">{producto.descripcion}</p>}
+                    <p className="truncate text-sm font-medium">{product.nombre}</p>
+                    {product.descripcion && <p className="truncate text-xs text-muted-foreground">{product.descripcion}</p>}
                   </div>
-                  <span className="shrink-0 text-sm tabular-nums">{formatCurrency(producto.precio)}</span>
+                  <span className="shrink-0 text-sm tabular-nums">{formatCurrency(product.precio)}</span>
                 </li>
               ))}
             </ul>
@@ -62,13 +62,13 @@ export function CategoriaDetailModal({ open, onOpenChange, categoria, productos,
         <section className="flex flex-col gap-2">
           <h3 className="text-sm font-medium">Mover un producto a esta categoría</h3>
           <div className="flex gap-2">
-            <Select disabled={pending || !disponibles.length} value={productoId} onValueChange={setProductoId}>
+            <Select disabled={pending || !available.length} value={productId} onValueChange={setProductId}>
               <SelectTrigger aria-label="Producto a mover" className="min-w-0 flex-1">
-                <SelectValue placeholder={disponibles.length ? "Elegir producto" : "No hay otros productos"} />
+                <SelectValue placeholder={available.length ? "Elegir producto" : "No hay otros productos"} />
               </SelectTrigger>
-              <SelectContent>{disponibles.map((producto) => <SelectItem key={producto.id} value={producto.id}>{producto.nombre} ({producto.categoriaNombre})</SelectItem>)}</SelectContent>
+              <SelectContent>{available.map((product) => <SelectItem key={product.id} value={product.id}>{product.nombre} ({product.categoriaNombre})</SelectItem>)}</SelectContent>
             </Select>
-            <Button disabled={pending || !disponibles.some((producto) => producto.id === productoId)} onClick={handleAgregar}>
+            <Button disabled={pending || !available.some((product) => product.id === productId)} onClick={handleAdd}>
               {pending ? "Moviendo…" : "Mover"}
             </Button>
           </div>

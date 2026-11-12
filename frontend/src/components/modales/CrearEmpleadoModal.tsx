@@ -5,34 +5,34 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PASSWORD_MINIMO } from "@/services/empleados.service"
-import type { CrearEmpleadoInput, RolDisponible } from "@/types/empleado"
+import { MIN_PASSWORD_LENGTH } from "@/services/empleados.service"
+import type { CreateEmployeeInput, AvailableRole } from "@/types/empleado"
 
 interface CrearEmpleadoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  rolesDisponibles: RolDisponible[]
-  cargandoRoles: boolean
-  errorRoles: string | null
-  onRecargarRoles: () => Promise<unknown>
-  onSubmit: (input: CrearEmpleadoInput) => Promise<unknown>
+  availableRoles: AvailableRole[]
+  loadingRoles: boolean
+  rolesError: string | null
+  onReloadRoles: () => Promise<unknown>
+  onSubmit: (input: CreateEmployeeInput) => Promise<unknown>
 }
 
 export function CrearEmpleadoModal({
-  open, onOpenChange, rolesDisponibles, cargandoRoles, errorRoles, onRecargarRoles, onSubmit,
+  open, onOpenChange, availableRoles, loadingRoles, rolesError, onReloadRoles, onSubmit,
 }: CrearEmpleadoModalProps) {
-  const [nombre, setNombre] = useState("")
+  const [name, setName] = useState("")
   const [dni, setDni] = useState("")
-  const [rolId, setRolId] = useState("")
+  const [roleId, setRoleId] = useState("")
   const [password, setPassword] = useState("")
   const { pending, error, run } = useAsyncAction()
 
   async function handleSubmit() {
     await run(async () => {
-      await onSubmit({ nombre: nombre.trim(), dni: dni.trim(), idTipoRol: Number(rolId), password })
-      setNombre("")
+      await onSubmit({ nombre: name.trim(), dni: dni.trim(), idTipoRol: Number(roleId), password })
+      setName("")
       setDni("")
-      setRolId("")
+      setRoleId("")
       setPassword("")
       onOpenChange(false)
     })
@@ -45,30 +45,30 @@ export function CrearEmpleadoModal({
           <DialogTitle>Crear empleado</DialogTitle>
           <DialogDescription>Cargá sus datos, la contraseña con la que va a entrar y su rol.</DialogDescription>
         </DialogHeader>
-        <Label htmlFor="empleado-nombre">Nombre completo</Label>
-        <Input id="empleado-nombre" maxLength={120} disabled={pending} value={nombre} onChange={(event) => setNombre(event.target.value)} />
-        <Label htmlFor="empleado-dni">DNI</Label>
-        <Input id="empleado-dni" maxLength={20} disabled={pending} value={dni} onChange={(event) => setDni(event.target.value)} />
-        <Label htmlFor="empleado-password">Contraseña</Label>
-        <Input id="empleado-password" type="password" autoComplete="new-password" minLength={PASSWORD_MINIMO} aria-describedby="empleado-password-ayuda" disabled={pending} value={password} onChange={(event) => setPassword(event.target.value)} />
-        <p id="empleado-password-ayuda" className="text-xs text-muted-foreground">Mínimo {PASSWORD_MINIMO} caracteres. La usa para iniciar sesión con su DNI.</p>
-        <Label htmlFor="empleado-rol">Rol</Label>
-        <Select disabled={pending || cargandoRoles || rolesDisponibles.length === 0} value={rolId} onValueChange={setRolId}>
-          <SelectTrigger id="empleado-rol"><SelectValue placeholder={cargandoRoles ? "Cargando roles…" : "Seleccionar rol"} /></SelectTrigger>
-          <SelectContent>{rolesDisponibles.map((rol) => <SelectItem key={rol.id} value={String(rol.id)}>{rol.nombre}</SelectItem>)}</SelectContent>
+        <Label htmlFor="employee-name">Nombre completo</Label>
+        <Input id="employee-name" maxLength={120} disabled={pending} value={name} onChange={(event) => setName(event.target.value)} />
+        <Label htmlFor="employee-dni">DNI</Label>
+        <Input id="employee-dni" maxLength={20} disabled={pending} value={dni} onChange={(event) => setDni(event.target.value)} />
+        <Label htmlFor="employee-password">Contraseña</Label>
+        <Input id="employee-password" type="password" autoComplete="new-password" minLength={MIN_PASSWORD_LENGTH} aria-describedby="employee-password-help" disabled={pending} value={password} onChange={(event) => setPassword(event.target.value)} />
+        <p id="employee-password-help" className="text-xs text-muted-foreground">Mínimo {MIN_PASSWORD_LENGTH} caracteres. La usa para iniciar sesión con su DNI.</p>
+        <Label htmlFor="employee-role">Rol</Label>
+        <Select disabled={pending || loadingRoles || availableRoles.length === 0} value={roleId} onValueChange={setRoleId}>
+          <SelectTrigger id="employee-role"><SelectValue placeholder={loadingRoles ? "Cargando roles…" : "Seleccionar rol"} /></SelectTrigger>
+          <SelectContent>{availableRoles.map((role) => <SelectItem key={role.id} value={String(role.id)}>{role.nombre}</SelectItem>)}</SelectContent>
         </Select>
-        {errorRoles ? (
+        {rolesError ? (
           <div className="flex flex-wrap items-center gap-2">
-            <p role="alert" className="text-sm text-destructive">{errorRoles}</p>
-            <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => onRecargarRoles()}>Reintentar</Button>
+            <p role="alert" className="text-sm text-destructive">{rolesError}</p>
+            <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => onReloadRoles()}>Reintentar</Button>
           </div>
-        ) : !cargandoRoles && rolesDisponibles.length === 0 && (
+        ) : !loadingRoles && availableRoles.length === 0 && (
           <p className="text-sm text-muted-foreground">No hay roles cargados en la base.</p>
         )}
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
         <DialogFooter>
           <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button disabled={pending || !nombre.trim() || !dni.trim() || password.length < PASSWORD_MINIMO || !rolesDisponibles.some((rol) => String(rol.id) === rolId)} onClick={handleSubmit}>Confirmar</Button>
+          <Button disabled={pending || !name.trim() || !dni.trim() || password.length < MIN_PASSWORD_LENGTH || !availableRoles.some((role) => String(role.id) === roleId)} onClick={handleSubmit}>Confirmar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

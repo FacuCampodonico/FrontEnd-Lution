@@ -8,27 +8,27 @@ import { Label } from "@/components/ui/label"
 import { useAsyncAction } from "@/hooks/useAsyncAction"
 import { useAuth } from "@/hooks/useAuth"
 
-function destinoTrasLogin(state: unknown): string {
+function redirectAfterLogin(state: unknown): string {
   const from = (state as { from?: Location } | null)?.from
   if (!from?.pathname || from.pathname === "/login") return "/mesas"
   return `${from.pathname}${from.search ?? ""}${from.hash ?? ""}`
 }
 
 export default function LoginPage() {
-  const { empleado, cargando, login } = useAuth()
+  const { employee, loading, login } = useAuth()
   const location = useLocation()
   const [dni, setDni] = useState("")
   const [password, setPassword] = useState("")
   const { pending, error, run } = useAsyncAction()
 
-  if (empleado) return <Navigate to={destinoTrasLogin(location.state)} replace />
+  if (employee) return <Navigate to={redirectAfterLogin(location.state)} replace />
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     await run(() => login(dni.trim(), password))
   }
 
-  const deshabilitado = pending || cargando
+  const disabled = pending || loading
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-muted/30 p-4">
@@ -52,7 +52,7 @@ export default function LoginPage() {
               maxLength={20}
               autoFocus
               required
-              disabled={deshabilitado}
+              disabled={disabled}
               value={dni}
               onChange={(event) => setDni(event.target.value)}
             />
@@ -63,12 +63,12 @@ export default function LoginPage() {
               type="password"
               autoComplete="current-password"
               required
-              disabled={deshabilitado}
+              disabled={disabled}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
             {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" size="lg" className="mt-1" disabled={deshabilitado || !dni.trim() || !password}>
+            <Button type="submit" size="lg" className="mt-1" disabled={disabled || !dni.trim() || !password}>
               {pending ? "Ingresando…" : "Ingresar"}
             </Button>
           </form>

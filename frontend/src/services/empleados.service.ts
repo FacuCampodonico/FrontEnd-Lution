@@ -1,39 +1,39 @@
 import { api } from "@/lib/api"
-import type { EmpleadoServicio, CrearEmpleadoInput, RolDisponible } from "@/types/empleado"
+import type { EmployeeResponse, CreateEmployeeInput, AvailableRole } from "@/types/empleado"
 
-export const PASSWORD_MINIMO = 6
+export const MIN_PASSWORD_LENGTH = 6
 
-export async function getRoles(): Promise<RolDisponible[]> {
-  const { data } = await api.get<RolDisponible[]>("/empleados/roles")
+export async function getRoles(): Promise<AvailableRole[]> {
+  const { data } = await api.get<AvailableRole[]>("/empleados/roles")
   return data
 }
 
-export async function getEmpleados(): Promise<EmpleadoServicio[]> {
-  const { data } = await api.get<EmpleadoServicio[]>("/empleados")
+export async function getEmployees(): Promise<EmployeeResponse[]> {
+  const { data } = await api.get<EmployeeResponse[]>("/empleados")
   return data
 }
 
-export async function getEmpleado(id: string | number): Promise<EmpleadoServicio> {
-  const { data } = await api.get<EmpleadoServicio>(`/empleados/${id}`)
+export async function getEmployee(id: string | number): Promise<EmployeeResponse> {
+  const { data } = await api.get<EmployeeResponse>(`/empleados/${id}`)
   return data
 }
 
-export async function createEmpleado(
-  input:   CrearEmpleadoInput
-): Promise<EmpleadoServicio> {
+export async function createEmployee(
+  input:   CreateEmployeeInput
+): Promise<EmployeeResponse> {
   if (!input.dni?.trim()) throw new Error("El DNI del empleado es obligatorio")
-  const idTipoRol = input.idTipoRol
-  if (idTipoRol === undefined || !Number.isSafeInteger(idTipoRol) || idTipoRol <= 0) {
+  const roleId = input.idTipoRol
+  if (roleId === undefined || !Number.isSafeInteger(roleId) || roleId <= 0) {
     throw new Error("El ID del rol del empleado debe ser un entero positivo")
   }
-  if (input.password.length < PASSWORD_MINIMO) {
-    throw new Error(`La contraseña debe tener al menos ${PASSWORD_MINIMO} caracteres`)
+  if (input.password.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(`La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres`)
   }
   const body = {
     nombre: input.nombre,
-    dni: input.dni, idTipoRol,
+    dni: input.dni, idTipoRol: roleId,
     password: input.password,
   }
-  const { data } = await api.post<EmpleadoServicio>("/empleados", body)
+  const { data } = await api.post<EmployeeResponse>("/empleados", body)
   return data
 }

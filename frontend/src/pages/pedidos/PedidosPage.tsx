@@ -8,78 +8,78 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useEmpleados } from "@/hooks/useEmpleados"
 import { useMesas } from "@/hooks/useMesas"
-import { usePedidos, usePedidosAbiertos } from "@/hooks/usePedidos"
+import { usePedidos, useOpenOrdersCount } from "@/hooks/usePedidos"
 import { formatCurrency } from "@/lib/utils"
-import type { EstadoPedido, Pedido } from "@/types/pedido"
+import type { OrderStatus, Order } from "@/types/pedido"
 
-const TODOS = "todos"
-const POR_PAGINA = 10
+const ALL = "all"
+const PAGE_SIZE = 10
 
-function cantidadItems(pedido: Pedido) {
-  return pedido.items.reduce((total, item) => total + item.cantidad, 0)
+function itemCount(order: Order) {
+  return order.items.reduce((total, item) => total + item.cantidad, 0)
 }
 
 export default function PedidosPage() {
-  const { mesas } = useMesas()
-  const { empleados } = useEmpleados()
-  const abiertos = usePedidosAbiertos()
+  const { tables } = useMesas()
+  const { employees } = useEmpleados()
+  const openCount = useOpenOrdersCount()
 
-  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null)
-  const [detalleAbierto, setDetalleAbierto] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
-  const [filtroMesa, setFiltroMesa] = useState(TODOS)
-  const [filtroEmpleado, setFiltroEmpleado] = useState(TODOS)
-  const [filtroEstado, setFiltroEstado] = useState<EstadoPedido | typeof TODOS>(TODOS)
-  const [pagina, setPagina] = useState(1)
-  const hayFiltros = filtroMesa !== TODOS || filtroEmpleado !== TODOS || filtroEstado !== TODOS
+  const [tableFilter, setTableFilter] = useState(ALL)
+  const [employeeFilter, setEmployeeFilter] = useState(ALL)
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | typeof ALL>(ALL)
+  const [page, setPage] = useState(1)
+  const hasFilters = tableFilter !== ALL || employeeFilter !== ALL || statusFilter !== ALL
 
-  const { pedidos, total, loading, error } = usePedidos({
-    mesaId: filtroMesa === TODOS ? undefined : filtroMesa,
-    empleadoId: filtroEmpleado === TODOS ? undefined : filtroEmpleado,
-    estado: filtroEstado === TODOS ? undefined : filtroEstado,
-    pagina,
-    limite: POR_PAGINA,
+  const { orders, total, loading, error } = usePedidos({
+    mesaId: tableFilter === ALL ? undefined : tableFilter,
+    empleadoId: employeeFilter === ALL ? undefined : employeeFilter,
+    estado: statusFilter === ALL ? undefined : statusFilter,
+    pagina: page,
+    limite: PAGE_SIZE,
   })
-  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA))
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
-  const mesasOrdenadas = [...mesas].sort((a, b) => Number(a.numero) - Number(b.numero))
-  const empleadosOrdenados = [...empleados].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
+  const sortedTables = [...tables].sort((a, b) => Number(a.numero) - Number(b.numero))
+  const sortedEmployees = [...employees].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
 
-  // Cambiar un filtro vuelve a la primera página.
-  function filtrarPor<T>(setFiltro: (valor: T) => void) {
-    return (valor: T) => {
-      setFiltro(valor)
-      setPagina(1)
+  // Changing a filter goes back to the first page.
+  function filterBy<T>(setFilter: (value: T) => void) {
+    return (value: T) => {
+      setFilter(value)
+      setPage(1)
     }
   }
 
-  function limpiarFiltros() {
-    setFiltroMesa(TODOS)
-    setFiltroEmpleado(TODOS)
-    setFiltroEstado(TODOS)
-    setPagina(1)
+  function clearFilters() {
+    setTableFilter(ALL)
+    setEmployeeFilter(ALL)
+    setStatusFilter(ALL)
+    setPage(1)
   }
 
-  function getMesaNumero(mesaId: string) {
-    return mesas.find((m) => m.id === mesaId)?.numero ?? mesaId
+  function getTableNumber(tableId: string) {
+    return tables.find((t) => t.id === tableId)?.numero ?? tableId
   }
 
-  function handleVerPedido(pedido: Pedido) {
-    setPedidoSeleccionado(pedido)
-    setDetalleAbierto(true)
+  function handleViewOrder(order: Order) {
+    setSelectedOrder(order)
+    setDetailOpen(true)
   }
 
-  const columnas: DataTableColumn<Pedido>[] = [
-    { header: "Pedido", cell: (p) => <span className="font-mono">#{p.id}</span> },
-    { header: "Mesa", cell: (p) => `Mesa ${getMesaNumero(p.mesaId)}` },
-    { header: "Empleado", cell: (p) => p.empleadoNombre ?? "Sin información" },
-    { header: "Ítems", cell: (p) => cantidadItems(p) },
-    { header: "Total", cell: (p) => formatCurrency(p.total) },
-    { header: "Estado", cell: (p) => <EstadoPedidoBadge estado={p.estado} /> },
+  const columns: DataTableColumn<Order>[] = [
+    { header: "Pedido", cell: (o) => <span className="font-mono">#{o.id}</span> },
+    { header: "Mesa", cell: (o) => `Mesa ${getTableNumber(o.mesaId)}` },
+    { header: "Empleado", cell: (o) => o.empleadoNombre ?? "Sin información" },
+    { header: "Ítems", cell: (o) => itemCount(o) },
+    { header: "Total", cell: (o) => formatCurrency(o.total) },
+    { header: "Estado", cell: (o) => <EstadoPedidoBadge status={o.estado} /> },
     {
       header: "Acciones",
-      cell: (p) => (
-        <Button variant="outline" size="sm" onClick={() => handleVerPedido(p)}>
+      cell: (o) => (
+        <Button variant="outline" size="sm" onClick={() => handleViewOrder(o)}>
           Ver detalle
         </Button>
       ),
@@ -90,58 +90,58 @@ export default function PedidosPage() {
     <div className="flex h-full flex-col">
       <PageHeader
         title="Pedidos"
-        subtitle={abiertos === null ? undefined : `${abiertos} abiertos`}
+        subtitle={openCount === null ? undefined : `${openCount} abiertos`}
       />
       <div className="flex-1 overflow-y-auto p-7">
         {loading && <p role="status">Cargando pedidos…</p>}
         {error && <p role="alert">{error}</p>}
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <Select value={filtroMesa} onValueChange={filtrarPor(setFiltroMesa)}>
+          <Select value={tableFilter} onValueChange={filterBy(setTableFilter)}>
             <SelectTrigger aria-label="Filtrar por mesa" className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={TODOS}>Todas las mesas</SelectItem>
-              {mesasOrdenadas.map((m) => <SelectItem key={m.id} value={m.id}>Mesa {m.numero}</SelectItem>)}
+              <SelectItem value={ALL}>Todas las mesas</SelectItem>
+              {sortedTables.map((t) => <SelectItem key={t.id} value={t.id}>Mesa {t.numero}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={filtroEmpleado} onValueChange={filtrarPor(setFiltroEmpleado)}>
+          <Select value={employeeFilter} onValueChange={filterBy(setEmployeeFilter)}>
             <SelectTrigger aria-label="Filtrar por empleado" className="w-52">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={TODOS}>Todos los empleados</SelectItem>
-              {empleadosOrdenados.map((e) => <SelectItem key={e.id} value={e.id}>{e.nombre}</SelectItem>)}
+              <SelectItem value={ALL}>Todos los empleados</SelectItem>
+              {sortedEmployees.map((e) => <SelectItem key={e.id} value={e.id}>{e.nombre}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={filtroEstado} onValueChange={(value) => filtrarPor(setFiltroEstado)(value as EstadoPedido | typeof TODOS)}>
+          <Select value={statusFilter} onValueChange={(value) => filterBy(setStatusFilter)(value as OrderStatus | typeof ALL)}>
             <SelectTrigger aria-label="Filtrar por estado" className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={TODOS}>Todos los estados</SelectItem>
+              <SelectItem value={ALL}>Todos los estados</SelectItem>
               <SelectItem value="abierto">Abiertos</SelectItem>
               <SelectItem value="pagado">Pagados</SelectItem>
             </SelectContent>
           </Select>
-          {hayFiltros && (
-            <Button variant="ghost" size="sm" onClick={limpiarFiltros}>Limpiar filtros</Button>
+          {hasFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>Limpiar filtros</Button>
           )}
           <span className="font-mono text-xs text-muted-foreground">{total} pedidos</span>
         </div>
         <DataTable
-          columns={columnas}
-          data={pedidos}
-          getRowKey={(p) => p.id}
-          emptyMessage={hayFiltros ? "No hay pedidos que coincidan con los filtros." : "Todavía no hay pedidos."}
+          columns={columns}
+          data={orders}
+          getRowKey={(o) => o.id}
+          emptyMessage={hasFilters ? "No hay pedidos que coincidan con los filtros." : "Todavía no hay pedidos."}
         />
-        {totalPaginas > 1 && (
+        {totalPages > 1 && (
           <div className="mt-4 flex items-center justify-end gap-2">
-            <Button variant="outline" size="sm" disabled={pagina <= 1 || loading} onClick={() => setPagina((p) => p - 1)}>
+            <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => setPage((p) => p - 1)}>
               Anterior
             </Button>
-            <span className="font-mono text-xs text-muted-foreground">Página {pagina} de {totalPaginas}</span>
-            <Button variant="outline" size="sm" disabled={pagina >= totalPaginas || loading} onClick={() => setPagina((p) => p + 1)}>
+            <span className="font-mono text-xs text-muted-foreground">Página {page} de {totalPages}</span>
+            <Button variant="outline" size="sm" disabled={page >= totalPages || loading} onClick={() => setPage((p) => p + 1)}>
               Siguiente
             </Button>
           </div>
@@ -149,13 +149,13 @@ export default function PedidosPage() {
       </div>
 
       <PedidoDetailModal
-        open={detalleAbierto}
+        open={detailOpen}
         onOpenChange={(open) => {
-          setDetalleAbierto(open)
-          if (!open) setPedidoSeleccionado(null)
+          setDetailOpen(open)
+          if (!open) setSelectedOrder(null)
         }}
-        pedidoId={pedidoSeleccionado?.id ?? null}
-        mesaNumero={pedidoSeleccionado ? getMesaNumero(pedidoSeleccionado.mesaId) : ""}
+        orderId={selectedOrder?.id ?? null}
+        tableNumber={selectedOrder ? getTableNumber(selectedOrder.mesaId) : ""}
       />
     </div>
   )

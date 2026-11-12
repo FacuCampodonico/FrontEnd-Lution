@@ -1,6 +1,6 @@
 import axios, { isAxiosError } from 'axios'
 
-import { clearToken, getToken, SESION_EXPIRADA } from '@/lib/sesion'
+import { clearToken, getToken, SESSION_EXPIRED } from '@/lib/sesion'
 
 export const api = axios.create({
   baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/$/, ''),
@@ -15,7 +15,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(undefined, (error: unknown) => {
   if (isAxiosError(error) && error.response?.status === 401 && error.config?.url !== '/auth/login') {
     clearToken()
-    window.dispatchEvent(new Event(SESION_EXPIRADA))
+    window.dispatchEvent(new Event(SESSION_EXPIRED))
   }
   return Promise.reject(error)
 })

@@ -1,183 +1,183 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useAsyncAction } from "@/hooks/useAsyncAction"
-import { errorMessage, faltantesDeStock } from "@/lib/errors"
-import { getMesa } from "@/services/mesas.service"
-import { agregarItem, actualizarItem, quitarItem, crearPedido, cancelarPedido as cancelarPedidoService, getPedidoPorMesa } from "@/services/pedidos.service"
-import { getProductos } from "@/services/productos.service"
-import type { FaltanteStock } from "@/types/insumo"
-import type { Mesa } from "@/types/mesa"
-import type { Pedido } from "@/types/pedido"
-import type { Producto } from "@/types/producto"
+import { errorMessage, stockShortages } from "@/lib/errors"
+import { getTable } from "@/services/mesas.service"
+import { addItem, updateItem, removeItem, createOrder, cancelOrder as cancelOrderService, getOrderByTable } from "@/services/pedidos.service"
+import { getProducts } from "@/services/productos.service"
+import type { StockShortage } from "@/types/insumo"
+import type { Table } from "@/types/mesa"
+import type { Order } from "@/types/pedido"
+import type { Product } from "@/types/producto"
 
-export interface ItemCarrito {
-  producto: Producto
-  cantidad: number
+export interface CartItem {
+  product: Product
+  quantity: number
 }
 
-type OperacionConStock = (permitirSinStock: boolean) => Promise<Pedido>
+type StockOperation = (allowWithoutStock: boolean) => Promise<Order>
 
-/** Operación frenada por falta de stock, a la espera de que el usuario decida si cargarla igual. */
-export interface AvisoStock {
-  faltantes: FaltanteStock[]
-  operacion: OperacionConStock
+/** Operation stopped for lack of stock, waiting for the user to decide whether to save it anyway. */
+export interface StockWarning {
+  shortages: StockShortage[]
+  operation: StockOperation
 }
 
-export function useMesaDetalle(mesaId: string, empleadoFijoId?: string) {
-  const [mesa, setMesa] = useState<Mesa | null>(null)
-  const [pedido, setPedido] = useState<Pedido | null>(null)
-  const [catalogo, setCatalogo] = useState<Producto[]>([])
-  const [carrito, setCarrito] = useState<ItemCarrito[]>([])
-  const [empleadoElegidoId, setEmpleadoId] = useState("")
-  // El mozo siempre toma el pedido a su nombre; el admin elige el empleado.
-  const empleadoId = empleadoFijoId ?? empleadoElegidoId
+export function useMesaDetalle(tableId: string, fixedEmployeeId?: string) {
+  const [table, setTable] = useState<Table | null>(null)
+  const [order, setOrder] = useState<Order | null>(null)
+  const [catalog, setCatalog] = useState<Product[]>([])
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [selectedEmployeeId, setEmployeeId] = useState("")
+  // A waiter always takes the order under their own name; an admin picks the employee.
+  const employeeId = fixedEmployeeId ?? selectedEmployeeId
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [needsRefresh, setNeedsRefresh] = useState(false)
-  const [avisoStock, setAvisoStock] = useState<AvisoStock | null>(null)
+  const [stockWarning, setStockWarning] = useState<StockWarning | null>(null)
   const action = useAsyncAction()
   const { clearError } = action
-  const currentMesaId = useRef(mesaId)
-  currentMesaId.current = mesaId
+  const currentTableId = useRef(tableId)
+  currentTableId.current = tableId
 
   const refetch = useCallback(async () => {
     setLoading(true)
     setLoadError(null)
     clearError()
     try {
-      const [mesaData, pedidoData, catalogoData] = await Promise.all([
-        getMesa(mesaId), getPedidoPorMesa(mesaId), getProductos(),
+      const [tableData, orderData, catalogData] = await Promise.all([
+        getTable(tableId), getOrderByTable(tableId), getProducts(),
       ])
-      if (currentMesaId.current !== mesaId) return
-      setMesa(mesaData)
-      setPedido(pedidoData)
-      setCatalogo(catalogoData)
+      if (currentTableId.current !== tableId) return
+      setTable(tableData)
+      setOrder(orderData)
+      setCatalog(catalogData)
       setNeedsRefresh(false)
-      if (pedidoData) setCarrito([])
+      if (orderData) setCart([])
     } catch (cause) {
-      if (currentMesaId.current === mesaId) setLoadError(errorMessage(cause))
+      if (currentTableId.current === tableId) setLoadError(errorMessage(cause))
     } finally {
-      if (currentMesaId.current === mesaId) setLoading(false)
+      if (currentTableId.current === tableId) setLoading(false)
     }
-  }, [mesaId, clearError])
+  }, [tableId, clearError])
 
   useEffect(() => {
-    setMesa(null)
-    setPedido(null)
-    setCarrito([])
-    setEmpleadoId("")
+    setTable(null)
+    setOrder(null)
+    setCart([])
+    setEmployeeId("")
     setNeedsRefresh(false)
-    setAvisoStock(null)
+    setStockWarning(null)
     void refetch()
   }, [refetch])
 
-  const bloqueado = loading || loadError !== null || action.pending || needsRefresh || avisoStock !== null || !mesa || mesa.estado === "por_pagar" || pedido?.estado === "pagado"
+  const locked = loading || loadError !== null || action.pending || needsRefresh || stockWarning !== null || !table || table.estado === "por_pagar" || order?.estado === "pagado"
 
-  async function recibirPedido(actualizado: Pedido) {
-    if (currentMesaId.current !== mesaId) return
-    setPedido(actualizado)
-    setCarrito([])
+  async function receiveOrder(updated: Order) {
+    if (currentTableId.current !== tableId) return
+    setOrder(updated)
+    setCart([])
     setNeedsRefresh(true)
     try {
-      const nuevaMesa = await getMesa(mesaId)
-      if (currentMesaId.current !== mesaId) return
-      setMesa(nuevaMesa)
+      const freshTable = await getTable(tableId)
+      if (currentTableId.current !== tableId) return
+      setTable(freshTable)
       setNeedsRefresh(false)
     } catch {
       throw new Error("El pedido se guardó, pero no se pudo actualizar la mesa. Recargá los datos antes de continuar.")
     }
   }
 
-  // Si al back no le alcanza el stock, se guarda el aviso para preguntar en vez de mostrar un error.
-  async function conControlDeStock(operacion: OperacionConStock) {
-    let actualizado: Pedido
+  // If the backend runs out of stock, keep the warning to ask the user instead of showing an error.
+  async function withStockCheck(operation: StockOperation) {
+    let updated: Order
     try {
-      actualizado = await operacion(false)
+      updated = await operation(false)
     } catch (cause) {
-      const faltantes = faltantesDeStock(cause)
-      if (!faltantes) throw cause
-      if (currentMesaId.current === mesaId) setAvisoStock({ faltantes, operacion })
+      const shortages = stockShortages(cause)
+      if (!shortages) throw cause
+      if (currentTableId.current === tableId) setStockWarning({ shortages, operation })
       return
     }
-    await recibirPedido(actualizado)
+    await receiveOrder(updated)
   }
 
-  async function confirmarSinStock() {
-    if (!avisoStock) return false
-    const { operacion } = avisoStock
+  async function confirmWithoutStock() {
+    if (!stockWarning) return false
+    const { operation } = stockWarning
     return action.run(async () => {
-      const actualizado = await operacion(true)
-      // Ya se guardó: aunque falle refrescar la mesa, no hay que ofrecer reintentar.
-      setAvisoStock(null)
-      await recibirPedido(actualizado)
+      const updated = await operation(true)
+      // It's already saved: even if refreshing the table fails, don't offer to retry.
+      setStockWarning(null)
+      await receiveOrder(updated)
     })
   }
 
-  function descartarAvisoStock() {
+  function dismissStockWarning() {
     if (action.pending) return
-    setAvisoStock(null)
+    setStockWarning(null)
     clearError()
   }
 
-  async function agregarProducto(producto: Producto) {
-    if (bloqueado) return
-    if (pedido) {
-      await action.run(() => conControlDeStock((permitirSinStock) =>
-        agregarItem(pedido.id, { productoId: producto.id, cantidad: 1 }, permitirSinStock)))
+  async function addProduct(product: Product) {
+    if (locked) return
+    if (order) {
+      await action.run(() => withStockCheck((allowWithoutStock) =>
+        addItem(order.id, { productoId: product.id, cantidad: 1 }, allowWithoutStock)))
       return
     }
-    setCarrito((prev) => {
-      const existente = prev.find((item) => item.producto.id === producto.id)
-      return existente
-        ? prev.map((item) => item.producto.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item)
-        : [...prev, { producto, cantidad: 1 }]
+    setCart((prev) => {
+      const existing = prev.find((item) => item.product.id === product.id)
+      return existing
+        ? prev.map((item) => item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
+        : [...prev, { product, quantity: 1 }]
     })
   }
 
-  async function cambiarCantidad(itemId: string, cantidad: number) {
-    if (bloqueado || !Number.isSafeInteger(cantidad) || cantidad < 1) return
-    if (pedido) {
-      await action.run(() => conControlDeStock((permitirSinStock) =>
-        actualizarItem(pedido.id, itemId, { cantidad }, permitirSinStock)))
+  async function changeQuantity(itemId: string, quantity: number) {
+    if (locked || !Number.isSafeInteger(quantity) || quantity < 1) return
+    if (order) {
+      await action.run(() => withStockCheck((allowWithoutStock) =>
+        updateItem(order.id, itemId, { cantidad: quantity }, allowWithoutStock)))
     } else {
-      setCarrito((prev) => prev.map((item) => item.producto.id === itemId ? { ...item, cantidad } : item))
+      setCart((prev) => prev.map((item) => item.product.id === itemId ? { ...item, quantity } : item))
     }
   }
 
-  async function quitarProducto(itemId: string) {
-    if (bloqueado) return
-    if (pedido) {
-      await action.run(async () => recibirPedido(await quitarItem(pedido.id, itemId)))
+  async function removeProduct(itemId: string) {
+    if (locked) return
+    if (order) {
+      await action.run(async () => receiveOrder(await removeItem(order.id, itemId)))
     } else {
-      setCarrito((prev) => prev.filter((item) => item.producto.id !== itemId))
+      setCart((prev) => prev.filter((item) => item.product.id !== itemId))
     }
   }
 
-  async function confirmarPedido() {
-    if (bloqueado || pedido || carrito.length === 0 || !empleadoId) return
-    const items = carrito.map((item) => ({ productoId: item.producto.id, cantidad: item.cantidad }))
-    await action.run(() => conControlDeStock(async (permitirSinStock) => {
-      const nuevo = await crearPedido(mesaId, items, empleadoId, permitirSinStock)
-      if (nuevo) return nuevo
+  async function confirmOrder() {
+    if (locked || order || cart.length === 0 || !employeeId) return
+    const items = cart.map((item) => ({ productoId: item.product.id, cantidad: item.quantity }))
+    await action.run(() => withStockCheck(async (allowWithoutStock) => {
+      const created = await createOrder(tableId, items, employeeId, allowWithoutStock)
+      if (created) return created
       setNeedsRefresh(true)
-      const recuperado = await getPedidoPorMesa(mesaId)
-      if (!recuperado) throw new Error("El backend no devolvió el pedido creado. Recargá los datos de la mesa antes de continuar.")
-      return recuperado
+      const recovered = await getOrderByTable(tableId)
+      if (!recovered) throw new Error("El backend no devolvió el pedido creado. Recargá los datos de la mesa antes de continuar.")
+      return recovered
     }))
   }
 
-  async function cancelarPedido() {
-    if (bloqueado || !pedido) return false
+  async function cancelOrder() {
+    if (locked || !order) return false
     return action.run(async () => {
-      await cancelarPedidoService(pedido.id)
-      if (currentMesaId.current !== mesaId) return
-      setPedido(null)
-      setCarrito([])
-      setEmpleadoId("")
+      await cancelOrderService(order.id)
+      if (currentTableId.current !== tableId) return
+      setOrder(null)
+      setCart([])
+      setEmployeeId("")
       setNeedsRefresh(true)
       try {
-        const nuevaMesa = await getMesa(mesaId)
-        if (currentMesaId.current !== mesaId) return
-        setMesa(nuevaMesa)
+        const freshTable = await getTable(tableId)
+        if (currentTableId.current !== tableId) return
+        setTable(freshTable)
         setNeedsRefresh(false)
       } catch {
         throw new Error("El pedido se canceló, pero no se pudo actualizar la mesa. Recargá los datos antes de continuar.")
@@ -186,8 +186,8 @@ export function useMesaDetalle(mesaId: string, empleadoFijoId?: string) {
   }
 
   return {
-    mesa, pedido, catalogo, carrito, empleadoId, setEmpleadoId, loading, pending: action.pending, bloqueado,
-    error: loadError ?? action.error, refetch, agregarProducto, cambiarCantidad,
-    quitarProducto, confirmarPedido, cancelarPedido, avisoStock, confirmarSinStock, descartarAvisoStock,
+    table, order, catalog, cart, employeeId, setEmployeeId, loading, pending: action.pending, locked,
+    error: loadError ?? action.error, refetch, addProduct, changeQuantity,
+    removeProduct, confirmOrder, cancelOrder, stockWarning, confirmWithoutStock, dismissStockWarning,
   }
 }

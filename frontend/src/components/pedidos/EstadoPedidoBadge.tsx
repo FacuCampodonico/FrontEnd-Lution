@@ -1,16 +1,16 @@
 import { Badge } from "@/components/ui/badge"
-import type { EstadoPedido } from "@/types/pedido"
+import type { OrderStatus } from "@/types/pedido"
 
-const LABELS: Record<EstadoPedido, string> = {
+const LABELS: Record<OrderStatus, string> = {
   abierto: "Abierto",
   pagado: "Pagado",
 }
 
-const VARIANTS: Record<EstadoPedido, "default" | "success"> = {
+const VARIANTS: Record<OrderStatus, "default" | "success"> = {
   abierto: "default",
   pagado: "success",
 }
 
-export function EstadoPedidoBadge({ estado }: { estado: EstadoPedido }) {
-  return <Badge variant={VARIANTS[estado]}>{LABELS[estado]}</Badge>
+export function EstadoPedidoBadge({ status }: { status: OrderStatus }) {
+  return <Badge variant={VARIANTS[status]}>{LABELS[status]}</Badge>
 }

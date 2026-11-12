@@ -1,10 +1,10 @@
 import { createContext } from "react"
 
-import type { EmpleadoSesion } from "@/types/auth"
+import type { SessionEmployee } from "@/types/auth"
 
 export interface AuthContextValue {
-  empleado: EmpleadoSesion | null
-  cargando: boolean
+  employee: SessionEmployee | null
+  loading: boolean
   login: (dni: string, password: string) => Promise<void>
   logout: () => void
 }

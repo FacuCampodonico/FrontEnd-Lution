@@ -1,30 +1,30 @@
 import { api } from "@/lib/api"
-import type { PagoRegistrado, CrearPagoInput, PreferenciaMercadoPago, EstadoCobroMercadoPagoResponse } from "@/types/pago"
+import type { RegisteredPayment, CreatePaymentInput, MercadoPagoPreference, MercadoPagoChargeStatusResponse } from "@/types/pago"
 
-export async function createPago(input: CrearPagoInput): Promise<PagoRegistrado> {
-  const tipo = input.metodo === "efectivo" ? "EFECTIVO" : "TARJETA"
-  const pagaCon = input.pagaCon
-  if (tipo === "EFECTIVO" && (pagaCon === undefined || !Number.isFinite(pagaCon) || pagaCon <= 0)) {
+export async function createPayment(input: CreatePaymentInput): Promise<RegisteredPayment> {
+  const type = input.method === "cash" ? "EFECTIVO" : "TARJETA"
+  const cashReceived = input.pagaCon
+  if (type === "EFECTIVO" && (cashReceived === undefined || !Number.isFinite(cashReceived) || cashReceived <= 0)) {
     throw new Error("El monto recibido en efectivo (pagaCon) es obligatorio")
   }
-  const body = tipo === "EFECTIVO"
-    ? { tipo, pagaCon }
-    : { tipo, titular: input.titular, marca: input.marca, cuotas: input.cuotas }
-  const { data } = await api.post<PagoRegistrado>(`/pedidos/${input.pedidoId}/pago`, body)
+  const body = type === "EFECTIVO"
+    ? { tipo: type, pagaCon: cashReceived }
+    : { tipo: type, titular: input.titular, marca: input.marca, cuotas: input.cuotas }
+  const { data } = await api.post<RegisteredPayment>(`/pedidos/${input.pedidoId}/pago`, body)
   return data
 }
 
-export async function crearPreferenciaMercadoPago(pedidoId: string): Promise<PreferenciaMercadoPago> {
-  const { data } = await api.post<PreferenciaMercadoPago>(`/pedidos/${pedidoId}/pago/mercadopago`)
+export async function createMercadoPagoPreference(orderId: string): Promise<MercadoPagoPreference> {
+  const { data } = await api.post<MercadoPagoPreference>(`/pedidos/${orderId}/pago/mercadopago`)
   return data
 }
 
-/** El back consulta a Mercado Pago y, si el cliente ya pagó, cierra el pedido. */
-export async function getEstadoCobroMercadoPago(pedidoId: string): Promise<EstadoCobroMercadoPagoResponse> {
-  const { data } = await api.get<EstadoCobroMercadoPagoResponse>(`/pedidos/${pedidoId}/pago/mercadopago/estado`)
+/** The backend asks Mercado Pago and, if the customer already paid, closes the order. */
+export async function getMercadoPagoChargeStatus(orderId: string): Promise<MercadoPagoChargeStatusResponse> {
+  const { data } = await api.get<MercadoPagoChargeStatusResponse>(`/pedidos/${orderId}/pago/mercadopago/estado`)
   return data
 }
 
-export async function cancelarCobroMercadoPago(pedidoId: string): Promise<void> {
-  await api.delete(`/pedidos/${pedidoId}/pago/mercadopago`)
+export async function cancelMercadoPagoCharge(orderId: string): Promise<void> {
+  await api.delete(`/pedidos/${orderId}/pago/mercadopago`)
 }

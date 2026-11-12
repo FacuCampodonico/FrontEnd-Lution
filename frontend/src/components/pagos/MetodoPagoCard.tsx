@@ -2,18 +2,18 @@ import type { ComponentType } from "react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import type { MetodoPago } from "@/types/pago"
+import type { PaymentMethod } from "@/types/pago"
 
 interface MetodoPagoCardProps {
-  metodo: MetodoPago
+  method: PaymentMethod
   label: string
   icon: ComponentType<{ className?: string }>
   disabled?: boolean
-  onSelect: (metodo: MetodoPago) => void
+  onSelect: (method: PaymentMethod) => void
 }
 
 export function MetodoPagoCard({
-  metodo,
+  method,
   label,
   icon: Icon,
   disabled,
@@ -27,10 +27,10 @@ export function MetodoPagoCard({
       onKeyDown={(event) => {
         if (!disabled && (event.key === "Enter" || event.key === " ")) {
           event.preventDefault()
-          onSelect(metodo)
+          onSelect(method)
         }
       }}
-      onClick={() => !disabled && onSelect(metodo)}
+      onClick={() => !disabled && onSelect(method)}
       className={cn(
         "cursor-pointer items-center py-6 text-center transition-colors hover:bg-muted/50",
         disabled && "pointer-events-none opacity-50"

@@ -1,43 +1,43 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { EstadoMesaBadge } from "@/components/mesas/EstadoMesaBadge"
 import { formatCurrency } from "@/lib/utils"
-import type { Mesa } from "@/types/mesa"
+import type { Table } from "@/types/mesa"
 
 interface MesaCardProps {
-  mesa: Mesa
-  onClick?: (mesa: Mesa) => void
+  table: Table
+  onClick?: (table: Table) => void
 }
 
-export function MesaCard({ mesa, onClick }: MesaCardProps) {
-  const libre = mesa.estado === "libre"
+export function MesaCard({ table, onClick }: MesaCardProps) {
+  const free = table.estado === "libre"
 
   return (
     <Card
       role="button"
-      onClick={() => onClick?.(mesa)}
+      onClick={() => onClick?.(table)}
       className={
         "h-full cursor-pointer justify-between transition-colors hover:bg-muted/50" +
-        (libre ? " bg-muted/30" : "")
+        (free ? " bg-muted/30" : "")
       }
     >
       <CardContent className="flex h-full flex-col justify-between gap-4">
         <div className="flex items-start justify-between">
           <span className="text-2xl font-semibold tracking-tight">
-            {mesa.numero}
+            {table.numero}
           </span>
-          <EstadoMesaBadge estado={mesa.estado} />
+          <EstadoMesaBadge status={table.estado} />
         </div>
-        {libre ? (
+        {free ? (
           <span className="text-sm font-medium text-muted-foreground">
             Abrir mesa
           </span>
         ) : (
           <div className="flex flex-col gap-0.5">
             <span className="text-xs text-muted-foreground">
-              {mesa.cantidadItems} {mesa.cantidadItems === 1 ? "item" : "items"}
+              {table.cantidadItems} {table.cantidadItems === 1 ? "item" : "items"}
             </span>
             <span className="font-mono text-sm font-medium">
-              {formatCurrency(mesa.totalActual)}
+              {formatCurrency(table.totalActual)}
             </span>
           </div>
         )}

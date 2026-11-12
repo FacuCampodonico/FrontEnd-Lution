@@ -1,16 +1,16 @@
 import { api } from "@/lib/api"
-import type { CrearCategoriaRequest, Categoria, CrearCategoriaInput } from "@/types/categoria"
+import type { CreateCategoryRequest, Category, CreateCategoryInput } from "@/types/categoria"
 
-export async function getCategorias(): Promise<Categoria[]> {
-  const { data } = await api.get<Categoria[]>("/categorias")
+export async function getCategories(): Promise<Category[]> {
+  const { data } = await api.get<Category[]>("/categorias")
   return data
 }
 
-export async function createCategoria(input: CrearCategoriaRequest | CrearCategoriaInput): Promise<Categoria> {
+export async function createCategory(input: CreateCategoryRequest | CreateCategoryInput): Promise<Category> {
   if ("productoIds" in input && Array.isArray(input.productoIds) && input.productoIds.length) {
     throw new Error("El backend no permite asignar productos al crear una categoría")
   }
-  const body: CrearCategoriaRequest = { nombre: input.nombre }
-  const { data } = await api.post<Categoria>("/categorias", body)
+  const body: CreateCategoryRequest = { nombre: input.nombre }
+  const { data } = await api.post<Category>("/categorias", body)
   return data
 }

@@ -1,11 +1,11 @@
-export type Nivel = "admin" | "mozo"
+export type AccessLevel = "admin" | "mozo"
 
-export interface EmpleadoSesion {
+export interface SessionEmployee {
   id: string
   nombre: string
   dni: string
   rolNombre: string
-  nivel: Nivel
+  nivel: AccessLevel
 }
 
 export interface LoginInput {
@@ -15,5 +15,5 @@ export interface LoginInput {
 
 export interface LoginResponse {
   accessToken: string
-  empleado: EmpleadoSesion
+  empleado: SessionEmployee
 }

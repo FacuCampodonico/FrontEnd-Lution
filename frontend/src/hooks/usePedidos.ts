@@ -1,53 +1,53 @@
 import { useCallback, useEffect, useState } from "react"
 
-import { getPedidos } from "@/services/pedidos.service"
-import type { FiltrosPedidos, Pedido } from "@/types/pedido"
+import { getOrders } from "@/services/pedidos.service"
+import type { OrderFilters, Order } from "@/types/pedido"
 
-export function usePedidos(filtros: FiltrosPedidos) {
-  const [pedidos, setPedidos] = useState<Pedido[]>([])
+export function usePedidos(filters: OrderFilters) {
+  const [orders, setOrders] = useState<Order[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const { mesaId, empleadoId, estado, pagina, limite } = filtros
+  const { mesaId, empleadoId, estado, pagina, limite } = filters
 
-  const cargar = useCallback(async (estaVigente: () => boolean = () => true) => {
+  const load = useCallback(async (isCurrent: () => boolean = () => true) => {
     setLoading(true)
     setError(null)
     try {
-      const respuesta = await getPedidos({ mesaId, empleadoId, estado, pagina, limite })
-      if (!estaVigente()) return
-      setPedidos(respuesta.data)
-      setTotal(respuesta.total)
+      const response = await getOrders({ mesaId, empleadoId, estado, pagina, limite })
+      if (!isCurrent()) return
+      setOrders(response.data)
+      setTotal(response.total)
     } catch {
-      if (estaVigente()) setError("No se pudieron cargar los pedidos")
+      if (isCurrent()) setError("No se pudieron cargar los pedidos")
     } finally {
-      if (estaVigente()) setLoading(false)
+      if (isCurrent()) setLoading(false)
     }
   }, [mesaId, empleadoId, estado, pagina, limite])
 
   useEffect(() => {
-    // Si los filtros cambian antes de que llegue la respuesta, se descarta la vieja.
-    let vigente = true
-    void cargar(() => vigente)
+    // If the filters change before the response arrives, the old one is discarded.
+    let current = true
+    void load(() => current)
     return () => {
-      vigente = false
+      current = false
     }
-  }, [cargar])
+  }, [load])
 
-  const refetch = useCallback(() => cargar(), [cargar])
+  const refetch = useCallback(() => load(), [load])
 
-  return { pedidos, total, loading, error, refetch }
+  return { orders, total, loading, error, refetch }
 }
 
-export function usePedidosAbiertos() {
-  const [abiertos, setAbiertos] = useState<number | null>(null)
+export function useOpenOrdersCount() {
+  const [openCount, setOpenCount] = useState<number | null>(null)
 
   useEffect(() => {
-    getPedidos({ estado: "abierto", limite: 1 })
-      .then((respuesta) => setAbiertos(respuesta.total))
-      .catch(() => setAbiertos(null))
+    getOrders({ estado: "abierto", limite: 1 })
+      .then((response) => setOpenCount(response.total))
+      .catch(() => setOpenCount(null))
   }, [])
 
-  return abiertos
+  return openCount
 }

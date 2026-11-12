@@ -1,6 +1,6 @@
 import { CheckCircle2 } from "lucide-react"
 
-/** Pantalla pública a la que Mercado Pago devuelve al cliente en su celular: no pide sesión. */
+/** Public page Mercado Pago sends the customer back to on their phone: no session required. */
 export default function PagoRecibidoPage() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-3 p-6 text-center">

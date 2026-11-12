@@ -1,15 +1,15 @@
-export type EstadoMesa = "libre" | "abierta" | "por_pagar"
+export type TableStatus = "libre" | "abierta" | "por_pagar"
 
-export interface Mesa {
+export interface Table {
   id: string
   numero: string
-  estado: EstadoMesa
+  estado: TableStatus
   pedidoActualId: string | null
   totalActual: number
   cantidadItems: number
 }
 
-export interface CrearMesaInput {
+export interface CreateTableInput {
   numero: string
   capacidad?: number
 }

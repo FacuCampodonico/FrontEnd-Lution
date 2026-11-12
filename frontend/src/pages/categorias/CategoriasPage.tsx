@@ -7,43 +7,43 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
 import { useCategorias } from "@/hooks/useCategorias"
 import { useProductos } from "@/hooks/useProductos"
-import type { Categoria } from "@/types/categoria"
+import type { Category } from "@/types/categoria"
 
 export default function CategoriasPage() {
-  const { categorias, loading, error, crearCategoria, refetch } = useCategorias()
-  const { productos, actualizarProducto } = useProductos()
-  
-  const [modalAbierto, setModalAbierto] = useState(false)
-  const [categoriaSeleccionadaId, setCategoriaSeleccionadaId] = useState<string | null>(null)
-  const [detalleAbierto, setDetalleAbierto] = useState(false)
+  const { categories, loading, error, createCategory, refetch } = useCategorias()
+  const { products, updateProduct } = useProductos()
 
-  const categoriaSeleccionada = categorias.find((c) => c.id === categoriaSeleccionadaId) || null
+  const [createOpen, setCreateOpen] = useState(false)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
-  function handleVerCategoria(categoria: Categoria) {
-    setCategoriaSeleccionadaId(categoria.id)
-    setDetalleAbierto(true)
+  const selectedCategory = categories.find((c) => c.id === selectedCategoryId) || null
+
+  function handleViewCategory(category: Category) {
+    setSelectedCategoryId(category.id)
+    setDetailOpen(true)
   }
 
-  async function handleAgregarProductoACategoria(categoriaId: string, productoId: string) {
-    await actualizarProducto(productoId, { categoriaId })
+  async function handleAddProductToCategory(categoryId: string, productId: string) {
+    await updateProduct(productId, { categoriaId: categoryId })
     if (!await refetch()) throw new Error("El producto se reasignó, pero no se pudo actualizar el listado de categorías. Recargá la pantalla.")
   }
 
-  const columnas: DataTableColumn<Categoria>[] = [
-    { 
-      header: "Nombre", 
+  const columns: DataTableColumn<Category>[] = [
+    {
+      header: "Nombre",
       cell: (c) => (
         <button
-          onClick={() => handleVerCategoria(c)}
+          onClick={() => handleViewCategory(c)}
           className="font-medium text-primary hover:underline text-left cursor-pointer"
         >
           {c.nombre}
         </button>
-      ) 
+      )
     },
-    { 
-      header: "Productos", 
-      cell: (c) => Array.isArray(c.productoIds) ? c.productoIds.length : 0 
+    {
+      header: "Productos",
+      cell: (c) => Array.isArray(c.productoIds) ? c.productoIds.length : 0
     },
     {
       header: "Acciones",
@@ -51,7 +51,7 @@ export default function CategoriasPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handleVerCategoria(c)}
+          onClick={() => handleViewCategory(c)}
         >
           Ver productos
         </Button>
@@ -64,34 +64,34 @@ export default function CategoriasPage() {
       <PageHeader
         title="Categorías"
         actionLabel="Crear categoría"
-        onAction={() => setModalAbierto(true)}
+        onAction={() => setCreateOpen(true)}
       />
       <div className="flex-1 overflow-y-auto p-7">
         {loading && <p role="status">Cargando categorías…</p>}
         {error && <p role="alert">{error}</p>}
         <DataTable
-          columns={columnas}
-          data={categorias}
+          columns={columns}
+          data={categories}
           getRowKey={(c) => c.id}
           emptyMessage="Todavía no cargaste categorías."
         />
       </div>
 
       <CrearCategoriaModal
-        open={modalAbierto}
-        onOpenChange={setModalAbierto}
-        onSubmit={crearCategoria}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSubmit={createCategory}
       />
 
       <CategoriaDetailModal
-        open={detalleAbierto}
+        open={detailOpen}
         onOpenChange={(open) => {
-          setDetalleAbierto(open)
-          if (!open) setCategoriaSeleccionadaId(null)
+          setDetailOpen(open)
+          if (!open) setSelectedCategoryId(null)
         }}
-        categoria={categoriaSeleccionada}
-        productos={productos}
-        onAddProducto={handleAgregarProductoACategoria}
+        category={selectedCategory}
+        products={products}
+        onAddProduct={handleAddProductToCategory}
       />
     </div>
   )

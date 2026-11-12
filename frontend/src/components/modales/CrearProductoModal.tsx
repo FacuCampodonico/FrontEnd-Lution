@@ -10,48 +10,48 @@ import { Label } from "@/components/ui/label"
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
-import { aReceta, recetaValida, type FilaReceta } from "@/lib/receta"
-import type { Insumo } from "@/types/insumo"
-import type { CrearProductoInput } from "@/types/producto"
+import { toRecipe, isValidRecipe, type RecipeRow } from "@/lib/receta"
+import type { Supply } from "@/types/insumo"
+import type { CreateProductInput } from "@/types/producto"
 
 interface CrearProductoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  categoriasDisponibles: { id: string; nombre: string }[]
-  insumos: Insumo[]
-  cargandoInsumos: boolean
-  errorInsumos: string | null
-  onRecargarInsumos: () => Promise<unknown>
-  onSubmit: (input: CrearProductoInput) => Promise<unknown>
+  availableCategories: { id: string; nombre: string }[]
+  supplies: Supply[]
+  loadingSupplies: boolean
+  suppliesError: string | null
+  onReloadSupplies: () => Promise<unknown>
+  onSubmit: (input: CreateProductInput) => Promise<unknown>
 }
 
 export function CrearProductoModal({
-  open, onOpenChange, categoriasDisponibles, insumos, cargandoInsumos,
-  errorInsumos, onRecargarInsumos, onSubmit,
+  open, onOpenChange, availableCategories, supplies, loadingSupplies,
+  suppliesError, onReloadSupplies, onSubmit,
 }: CrearProductoModalProps) {
   const { pending, error, run, clearError } = useAsyncAction()
-  const [nombre, setNombre] = useState("")
-  const [descripcion, setDescripcion] = useState("")
-  const [precio, setPrecio] = useState("")
-  const [categoriaId, setCategoriaId] = useState("")
-  const [recetas, setRecetas] = useState<FilaReceta[]>([])
-  const precioValido = precio !== "" && Number.isFinite(Number(precio)) && Number(precio) >= 0
-  const formularioValido = nombre.trim() && descripcion.trim() && precioValido && categoriaId
-    && recetaValida(recetas, insumos) && !(recetas.length > 0 && (cargandoInsumos || errorInsumos))
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [price, setPrice] = useState("")
+  const [categoryId, setCategoryId] = useState("")
+  const [recipe, setRecipe] = useState<RecipeRow[]>([])
+  const isValidPrice = price !== "" && Number.isFinite(Number(price)) && Number(price) >= 0
+  const isValidForm = name.trim() && description.trim() && isValidPrice && categoryId
+    && isValidRecipe(recipe, supplies) && !(recipe.length > 0 && (loadingSupplies || suppliesError))
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!formularioValido) return
+    if (!isValidForm) return
     await run(async () => {
       await onSubmit({
-        nombre: nombre.trim(), descripcion: descripcion.trim(), precio: Number(precio), categoriaId,
-        recetas: aReceta(recetas),
+        nombre: name.trim(), descripcion: description.trim(), precio: Number(price), categoriaId: categoryId,
+        recetas: toRecipe(recipe),
       })
-      setNombre("")
-      setDescripcion("")
-      setPrecio("")
-      setCategoriaId("")
-      setRecetas([])
+      setName("")
+      setDescription("")
+      setPrice("")
+      setCategoryId("")
+      setRecipe([])
       onOpenChange(false)
     })
   }
@@ -72,30 +72,30 @@ export function CrearProductoModal({
         <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-5">
           <fieldset disabled={pending} className="flex min-w-0 flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="producto-nombre">Nombre</Label>
-              <Input id="producto-nombre" required maxLength={120} placeholder="Pizza muzzarella"
-                value={nombre} onChange={(event) => setNombre(event.target.value)} />
+              <Label htmlFor="product-name">Nombre</Label>
+              <Input id="product-name" required maxLength={120} placeholder="Pizza muzzarella"
+                value={name} onChange={(event) => setName(event.target.value)} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="producto-descripcion">Descripción</Label>
-              <Input id="producto-descripcion" required maxLength={255} placeholder="Pizza grande con muzzarella"
-                value={descripcion} onChange={(event) => setDescripcion(event.target.value)} />
+              <Label htmlFor="product-description">Descripción</Label>
+              <Input id="product-description" required maxLength={255} placeholder="Pizza grande con muzzarella"
+                value={description} onChange={(event) => setDescription(event.target.value)} />
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="producto-precio">Precio</Label>
-                <Input id="producto-precio" type="number" required min="0" step="0.01" placeholder="8900"
-                  value={precio} onChange={(event) => setPrecio(event.target.value)} />
+                <Label htmlFor="product-price">Precio</Label>
+                <Input id="product-price" type="number" required min="0" step="0.01" placeholder="8900"
+                  value={price} onChange={(event) => setPrice(event.target.value)} />
               </div>
               <div className="flex min-w-0 flex-col gap-1.5">
-                <Label htmlFor="producto-categoria">Categoría</Label>
-                <Select disabled={pending} value={categoriaId} onValueChange={setCategoriaId}>
-                  <SelectTrigger id="producto-categoria" className="w-full min-w-0">
+                <Label htmlFor="product-category">Categoría</Label>
+                <Select disabled={pending} value={categoryId} onValueChange={setCategoryId}>
+                  <SelectTrigger id="product-category" className="w-full min-w-0">
                     <SelectValue placeholder="Seleccionar" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categoriasDisponibles.map((categoria) => (
-                      <SelectItem key={categoria.id} value={categoria.id}>{categoria.nombre}</SelectItem>
+                    {availableCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>{category.nombre}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -103,13 +103,13 @@ export function CrearProductoModal({
             </div>
           </fieldset>
 
-          <RecetaEditor filas={recetas} onChange={setRecetas} insumos={insumos} cargandoInsumos={cargandoInsumos}
-            errorInsumos={errorInsumos} onRecargarInsumos={onRecargarInsumos} disabled={pending} />
+          <RecetaEditor rows={recipe} onChange={setRecipe} supplies={supplies} loadingSupplies={loadingSupplies}
+            suppliesError={suppliesError} onReloadSupplies={onReloadSupplies} disabled={pending} />
 
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <DialogFooter>
             <Button type="button" variant="outline" disabled={pending} onClick={() => { clearError(); onOpenChange(false) }}>Cancelar</Button>
-            <Button type="submit" disabled={pending || !formularioValido}>{pending ? "Guardando…" : "Crear producto"}</Button>
+            <Button type="submit" disabled={pending || !isValidForm}>{pending ? "Guardando…" : "Crear producto"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -1,24 +1,24 @@
 import { useCallback, useEffect, useState } from "react"
 
 import { useAsyncAction } from "@/hooks/useAsyncAction"
-import { createMesa, getMesas } from "@/services/mesas.service"
-import type { CrearMesaInput, Mesa } from "@/types/mesa"
+import { createTable as createTableService, getTables } from "@/services/mesas.service"
+import type { CreateTableInput, Table } from "@/types/mesa"
 
 export function useMesas() {
-  const [mesas, setMesas] = useState<Mesa[]>([])
+  const [tables, setTables] = useState<Table[]>([])
   const { pending: loading, error, run } = useAsyncAction({ initialPending: true, failureMessage: "No se pudieron cargar las mesas" })
 
-  const refetch = useCallback(() => run(async () => setMesas(await getMesas())), [run])
+  const refetch = useCallback(() => run(async () => setTables(await getTables())), [run])
 
   useEffect(() => {
     void refetch()
   }, [refetch])
 
-  async function crearMesa(input: CrearMesaInput) {
-    const nueva = await createMesa(input)
-    setMesas((prev) => [...prev, nueva])
-    return nueva
+  async function createTable(input: CreateTableInput) {
+    const created = await createTableService(input)
+    setTables((prev) => [...prev, created])
+    return created
   }
 
-  return { mesas, loading, error, refetch, crearMesa }
+  return { tables, loading, error, refetch, createTable }
 }

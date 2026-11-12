@@ -1,64 +1,64 @@
 import { api } from "@/lib/api"
-import type { ActualizarItemInput, AgregarItemInput, FiltrosPedidos, Pedido, PedidosPaginados } from "@/types/pedido"
+import type { UpdateItemInput, AddItemInput, OrderFilters, Order, PaginatedOrders } from "@/types/pedido"
 
-/** Con permitirSinStock el back carga el pedido aunque el stock quede negativo. */
-function stockParams(permitirSinStock: boolean) {
-  return permitirSinStock ? { params: { permitirSinStock: true } } : undefined
+/** With allowWithoutStock the backend saves the order even if stock goes negative. */
+function stockParams(allowWithoutStock: boolean) {
+  return allowWithoutStock ? { params: { permitirSinStock: true } } : undefined
 }
 
-export async function getPedidos(filtros: FiltrosPedidos = {}): Promise<PedidosPaginados> {
-  const { data } = await api.get<PedidosPaginados>("/pedidos", { params: filtros })
+export async function getOrders(filters: OrderFilters = {}): Promise<PaginatedOrders> {
+  const { data } = await api.get<PaginatedOrders>("/pedidos", { params: filters })
   return data
 }
 
-export async function getPedidoPorMesa(mesaId: string | number): Promise<Pedido | null> {
-  const { data } = await api.get<Pedido | null>(`/mesas/${mesaId}/pedido`)
+export async function getOrderByTable(tableId: string | number): Promise<Order | null> {
+  const { data } = await api.get<Order | null>(`/mesas/${tableId}/pedido`)
   return data
 }
 
-export async function getPedido(pedidoId: string | number): Promise<Pedido> {
-  const { data } = await api.get<Pedido>(`/pedidos/${pedidoId}`)
+export async function getOrder(orderId: string | number): Promise<Order> {
+  const { data } = await api.get<Order>(`/pedidos/${orderId}`)
   return data
 }
 
-export async function crearPedido(
-  mesaId: string | number,
-  items: AgregarItemInput[],
-  empleadoId: string | number,
-  permitirSinStock = false,
-): Promise<Pedido | null> {
+export async function createOrder(
+  tableId: string | number,
+  items: AddItemInput[],
+  employeeId: string | number,
+  allowWithoutStock = false,
+): Promise<Order | null> {
   const body = {
-    empleadoId: Number(empleadoId),
+    empleadoId: Number(employeeId),
     items: items.map((item) => ({ productoId: Number(item.productoId), cantidad: item.cantidad })),
   }
-  const { data } = await api.post<Pedido | null>(`/mesas/${mesaId}/pedido`, body, stockParams(permitirSinStock))
+  const { data } = await api.post<Order | null>(`/mesas/${tableId}/pedido`, body, stockParams(allowWithoutStock))
   return data
 }
 
-export async function cancelarPedido(pedidoId: string | number): Promise<void> {
-  await api.delete(`/pedidos/${pedidoId}`)
+export async function cancelOrder(orderId: string | number): Promise<void> {
+  await api.delete(`/pedidos/${orderId}`)
 }
 
-export async function agregarItem(
-  pedidoId: string | number, input: AgregarItemInput, permitirSinStock = false,
-): Promise<Pedido> {
+export async function addItem(
+  orderId: string | number, input: AddItemInput, allowWithoutStock = false,
+): Promise<Order> {
   const body = {
     productoId: Number(input.productoId), cantidad: input.cantidad,
     comentario: input.comentario,
   }
-  const { data } = await api.post<Pedido>(`/pedidos/${pedidoId}/items`, body, stockParams(permitirSinStock))
+  const { data } = await api.post<Order>(`/pedidos/${orderId}/items`, body, stockParams(allowWithoutStock))
   return data
 }
 
-export async function actualizarItem(
-  pedidoId: string | number, itemId: string | number, input: ActualizarItemInput, permitirSinStock = false,
-): Promise<Pedido> {
+export async function updateItem(
+  orderId: string | number, itemId: string | number, input: UpdateItemInput, allowWithoutStock = false,
+): Promise<Order> {
   const body = { cantidad: input.cantidad, comentario: input.comentario }
-  const { data } = await api.patch<Pedido>(`/pedidos/${pedidoId}/items/${itemId}`, body, stockParams(permitirSinStock))
+  const { data } = await api.patch<Order>(`/pedidos/${orderId}/items/${itemId}`, body, stockParams(allowWithoutStock))
   return data
 }
 
-export async function quitarItem(pedidoId: string | number, itemId: string | number): Promise<Pedido> {
-  const { data } = await api.delete<Pedido>(`/pedidos/${pedidoId}/items/${itemId}`)
+export async function removeItem(orderId: string | number, itemId: string | number): Promise<Order> {
+  const { data } = await api.delete<Order>(`/pedidos/${orderId}/items/${itemId}`)
   return data
 }

@@ -1,36 +1,36 @@
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
-import type { Producto } from "@/types/producto"
+import type { Product } from "@/types/producto"
 
 interface CatalogoProductoItemProps {
-  producto: Producto
+  product: Product
   disabled?: boolean
-  onAgregar: (producto: Producto) => Promise<unknown>
+  onAdd: (product: Product) => Promise<unknown>
 }
 
 export function CatalogoProductoItem({
-  producto,
-  onAgregar,
+  product,
+  onAdd,
   disabled,
 }: CatalogoProductoItemProps) {
   return (
     <div className="flex items-center justify-between gap-4 border-b px-4 py-3 last:border-b-0">
       <div className="flex flex-col gap-0.5">
-        <span className="text-sm font-medium">{producto.nombre}</span>
+        <span className="text-sm font-medium">{product.nombre}</span>
         <span className="font-mono text-xs text-muted-foreground">
-          {producto.categoriaNombre}
+          {product.categoriaNombre}
         </span>
       </div>
       <div className="flex items-center gap-3.5">
         <span className="font-mono text-sm font-medium">
-          {formatCurrency(producto.precio)}
+          {formatCurrency(product.precio)}
         </span>
         <Button
           size="icon-sm"
           variant="secondary"
           disabled={disabled}
-          onClick={() => onAgregar(producto)}
-          aria-label={`Agregar ${producto.nombre}`}
+          onClick={() => onAdd(product)}
+          aria-label={`Agregar ${product.nombre}`}
         >
           +
         </Button>

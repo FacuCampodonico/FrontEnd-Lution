@@ -23,9 +23,9 @@ function App() {
         <Route element={<AppLayout />}>
           <Route index element={<Navigate to="/mesas" replace />} />
           <Route path="mesas" element={<MesasPage />} />
-          <Route path="mesas/:mesaId" element={<MesaDetallePage />} />
-          <Route element={<RutaProtegida niveles={['admin']} />}>
-            <Route path="mesas/:mesaId/pago" element={<PagoPage />} />
+          <Route path="mesas/:tableId" element={<MesaDetallePage />} />
+          <Route element={<RutaProtegida levels={['admin']} />}>
+            <Route path="mesas/:tableId/pago" element={<PagoPage />} />
             <Route path="pedidos" element={<PedidosPage />} />
             <Route path="insumos" element={<InsumosPage />} />
             <Route path="categorias" element={<CategoriasPage />} />

@@ -11,12 +11,12 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import type { CrearCategoriaInput } from "@/types/categoria"
+import type { CreateCategoryInput } from "@/types/categoria"
 
 interface CrearCategoriaModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (input: CrearCategoriaInput) => Promise<unknown>
+  onSubmit: (input: CreateCategoryInput) => Promise<unknown>
 }
 
 export function CrearCategoriaModal({
@@ -25,11 +25,11 @@ export function CrearCategoriaModal({
   onSubmit,
 }: CrearCategoriaModalProps) {
   const { pending, error, run } = useAsyncAction()
-  const [nombre, setNombre] = useState("")
+  const [name, setName] = useState("")
   async function handleSubmit() {
     await run(async () => {
-      await onSubmit({ nombre: nombre.trim() })
-      setNombre("")
+      await onSubmit({ nombre: name.trim() })
+      setName("")
       onOpenChange(false)
     })
   }
@@ -42,14 +42,14 @@ export function CrearCategoriaModal({
         </DialogHeader>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="categoria-nombre">Nombre</Label>
+          <Label htmlFor="category-name">Nombre</Label>
           <Input
-            id="categoria-nombre"
+            id="category-name"
             maxLength={100}
             disabled={pending}
             placeholder="Pizzas"
-            value={nombre}
-            onChange={(event) => setNombre(event.target.value)}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
           />
         </div>
 
@@ -58,7 +58,7 @@ export function CrearCategoriaModal({
           <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button disabled={pending || !nombre.trim()} onClick={handleSubmit}>
+          <Button disabled={pending || !name.trim()} onClick={handleSubmit}>
             Confirmar
           </Button>
         </DialogFooter>

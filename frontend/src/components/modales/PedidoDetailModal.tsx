@@ -6,36 +6,36 @@ import { formatCurrency } from "@/lib/utils"
 interface PedidoDetailModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  pedidoId: string | null
-  mesaNumero: string
+  orderId: string | null
+  tableNumber: string
 }
 
-export function PedidoDetailModal({ open, onOpenChange, pedidoId, mesaNumero }: PedidoDetailModalProps) {
-  const { pedido, loading, error } = usePedidoDetalle(pedidoId)
+export function PedidoDetailModal({ open, onOpenChange, orderId, tableNumber }: PedidoDetailModalProps) {
+  const { order, loading, error } = usePedidoDetalle(orderId)
 
-  if (!pedidoId) return null
+  if (!orderId) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <DialogTitle>Pedido #{pedidoId}</DialogTitle>
-            {pedido && <EstadoPedidoBadge estado={pedido.estado} />}
+            <DialogTitle>Pedido #{orderId}</DialogTitle>
+            {order && <EstadoPedidoBadge status={order.estado} />}
           </div>
           <DialogDescription>
-            Mesa {mesaNumero}{pedido?.empleadoNombre && ` · Atendido por: ${pedido.empleadoNombre}`}
+            Mesa {tableNumber}{order?.empleadoNombre && ` · Atendido por: ${order.empleadoNombre}`}
           </DialogDescription>
         </DialogHeader>
 
         {loading && <p role="status" className="py-4 text-center text-sm text-muted-foreground">Cargando pedido…</p>}
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
-        {pedido && (
+        {order && (
           <>
-            {pedido.items.length ? (
+            {order.items.length ? (
               <ul className="divide-y rounded-md border">
-                {pedido.items.map((item) => (
+                {order.items.map((item) => (
                   <li key={item.id} className="flex items-center justify-between gap-3 px-3 py-2">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{item.productoNombre}</p>
@@ -51,7 +51,7 @@ export function PedidoDetailModal({ open, onOpenChange, pedidoId, mesaNumero }: 
 
             <div className="flex items-center justify-between border-t pt-3">
               <span className="text-sm font-medium">Total</span>
-              <span className="text-base font-semibold tabular-nums">{formatCurrency(pedido.total)}</span>
+              <span className="text-base font-semibold tabular-nums">{formatCurrency(order.total)}</span>
             </div>
           </>
         )}

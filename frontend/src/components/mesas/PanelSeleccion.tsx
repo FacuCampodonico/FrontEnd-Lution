@@ -3,48 +3,48 @@ import { EmptyState } from "@/components/shared/EmptyState"
 import { SeleccionItem } from "@/components/mesas/SeleccionItem"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
-import type { Empleado } from "@/types/empleado"
-import type { PedidoItem } from "@/types/pedido"
+import type { Employee } from "@/types/empleado"
+import type { OrderItem } from "@/types/pedido"
 
 interface PanelSeleccionProps {
-  items: PedidoItem[]
+  items: OrderItem[]
   total: number
-  pedidoCreado: boolean
+  orderCreated: boolean
   disabled: boolean
-  cierrePendiente: boolean
-  /** Habilita elegir el empleado, cancelar el pedido y cobrar. */
-  esAdmin: boolean
-  empleados: Empleado[]
-  empleadosLoading: boolean
-  empleadosError: string | null
-  empleadoId: string
-  empleadoNombre: string | null
-  onEmpleado: (empleadoId: string) => void
-  onCantidad: (itemId: string, cantidad: number) => Promise<unknown>
-  onQuitar: (itemId: string) => Promise<unknown>
-  onCrearPedido: () => Promise<unknown>
-  onPagar: () => void
-  onCancelarPedido: () => void
+  releasePending: boolean
+  /** Enables picking the employee, cancelling the order and charging. */
+  isAdmin: boolean
+  employees: Employee[]
+  employeesLoading: boolean
+  employeesError: string | null
+  employeeId: string
+  employeeName: string | null
+  onEmployee: (employeeId: string) => void
+  onQuantity: (itemId: string, quantity: number) => Promise<unknown>
+  onRemove: (itemId: string) => Promise<unknown>
+  onCreateOrder: () => Promise<unknown>
+  onPay: () => void
+  onCancelOrder: () => void
 }
 
 export function PanelSeleccion({
   items,
   total,
-  pedidoCreado,
+  orderCreated,
   disabled,
-  cierrePendiente,
-  esAdmin,
-  empleados,
-  empleadosLoading,
-  empleadosError,
-  empleadoId,
-  empleadoNombre,
-  onEmpleado,
-  onCantidad,
-  onQuitar,
-  onCrearPedido,
-  onPagar,
-  onCancelarPedido,
+  releasePending,
+  isAdmin,
+  employees,
+  employeesLoading,
+  employeesError,
+  employeeId,
+  employeeName,
+  onEmployee,
+  onQuantity,
+  onRemove,
+  onCreateOrder,
+  onPay,
+  onCancelOrder,
 }: PanelSeleccionProps) {
   return (
     <aside className="flex w-[400px] shrink-0 flex-col gap-3.5 border-l bg-background p-6">
@@ -57,7 +57,7 @@ export function PanelSeleccion({
       ) : (
         <div className="flex flex-col">
           {items.map((item) => (
-            <SeleccionItem key={item.id} item={item} disabled={disabled} onCantidad={onCantidad} onQuitar={onQuitar} />
+            <SeleccionItem key={item.id} item={item} disabled={disabled} onQuantity={onQuantity} onRemove={onRemove} />
           ))}
         </div>
       )}
@@ -71,21 +71,21 @@ export function PanelSeleccion({
         </div>
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
-            {esAdmin && !cierrePendiente && (
-              <Select disabled={disabled || pedidoCreado || empleadosLoading || !empleados.length} value={empleadoId} onValueChange={onEmpleado}>
+            {isAdmin && !releasePending && (
+              <Select disabled={disabled || orderCreated || employeesLoading || !employees.length} value={employeeId} onValueChange={onEmployee}>
                 <SelectTrigger aria-label="Empleado que toma el pedido" className="h-10 min-w-0 flex-1">
-                  <SelectValue placeholder={pedidoCreado ? empleadoNombre ?? "Sin empleado" : empleadosLoading ? "Cargando empleados…" : empleados.length ? "Elegir empleado" : "No hay empleados"} />
+                  <SelectValue placeholder={orderCreated ? employeeName ?? "Sin empleado" : employeesLoading ? "Cargando empleados…" : employees.length ? "Elegir empleado" : "No hay empleados"} />
                 </SelectTrigger>
-                <SelectContent>{empleados.map((empleado) => <SelectItem key={empleado.id} value={empleado.id}>{`${empleado.nombre} ${empleado.apellido}`.trim()}</SelectItem>)}</SelectContent>
+                <SelectContent>{employees.map((employee) => <SelectItem key={employee.id} value={employee.id}>{`${employee.nombre} ${employee.apellido}`.trim()}</SelectItem>)}</SelectContent>
               </Select>
             )}
-            {esAdmin && pedidoCreado && !cierrePendiente ? (
+            {isAdmin && orderCreated && !releasePending ? (
               <Button
                 size="lg"
                 variant="outline"
                 className="flex-1 text-red-600 hover:bg-red-50 hover:text-red-700"
                 disabled={disabled}
-                onClick={onCancelarPedido}
+                onClick={onCancelOrder}
               >
                 Cancelar pedido
               </Button>
@@ -93,34 +93,34 @@ export function PanelSeleccion({
               <Button
                 size="lg"
                 className="flex-1"
-                disabled={disabled || pedidoCreado || cierrePendiente || items.length === 0 || !empleadoId}
-                onClick={() => onCrearPedido()}
+                disabled={disabled || orderCreated || releasePending || items.length === 0 || !employeeId}
+                onClick={() => onCreateOrder()}
               >
                 Crear pedido
               </Button>
             )}
           </div>
-          {esAdmin && !pedidoCreado && !cierrePendiente && empleadosError && (
-            <p role="alert" className="text-xs text-destructive">{empleadosError}</p>
+          {isAdmin && !orderCreated && !releasePending && employeesError && (
+            <p role="alert" className="text-xs text-destructive">{employeesError}</p>
           )}
-          {esAdmin ? (
+          {isAdmin ? (
             <>
               <Button
                 size="lg"
                 variant="secondary"
-                disabled={(!cierrePendiente && (!pedidoCreado || items.length === 0)) || (disabled && !cierrePendiente)}
-                onClick={onPagar}
+                disabled={(!releasePending && (!orderCreated || items.length === 0)) || (disabled && !releasePending)}
+                onClick={onPay}
               >
-                {cierrePendiente ? "Liberar mesa" : "Pagar"}
+                {releasePending ? "Liberar mesa" : "Pagar"}
               </Button>
-              {!pedidoCreado && !cierrePendiente && (
+              {!orderCreated && !releasePending && (
                 <p className="text-center font-mono text-xs text-muted-foreground">
                   Pagar se habilita al crear el pedido
                 </p>
               )}
             </>
           ) : (
-            (pedidoCreado || cierrePendiente) && (
+            (orderCreated || releasePending) && (
               <p className="text-center font-mono text-xs text-muted-foreground">
                 El cobro lo hace un administrador
               </p>

@@ -1,54 +1,54 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 
 import { AuthContext, type AuthContextValue } from "@/context/auth-context"
-import { clearToken, getToken, SESION_EXPIRADA, setToken } from "@/lib/sesion"
+import { clearToken, getToken, SESSION_EXPIRED, setToken } from "@/lib/sesion"
 import { login as loginService, me } from "@/services/auth.service"
-import type { EmpleadoSesion } from "@/types/auth"
+import type { SessionEmployee } from "@/types/auth"
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [empleado, setEmpleado] = useState<EmpleadoSesion | null>(null)
-  const [cargando, setCargando] = useState(() => getToken() !== null)
+  const [employee, setEmployee] = useState<SessionEmployee | null>(null)
+  const [loading, setLoading] = useState(() => getToken() !== null)
 
   useEffect(() => {
     if (getToken() === null) return
-    let cancelado = false
+    let cancelled = false
     me()
-      .then((actual) => {
-        if (!cancelado) setEmpleado(actual)
+      .then((current) => {
+        if (!cancelled) setEmployee(current)
       })
       .catch(() => {
-        if (!cancelado) setEmpleado(null)
+        if (!cancelled) setEmployee(null)
       })
       .finally(() => {
-        if (!cancelado) setCargando(false)
+        if (!cancelled) setLoading(false)
       })
     return () => {
-      cancelado = true
+      cancelled = true
     }
   }, [])
 
   useEffect(() => {
-    function alExpirar() {
-      setEmpleado(null)
+    function onExpired() {
+      setEmployee(null)
     }
-    window.addEventListener(SESION_EXPIRADA, alExpirar)
-    return () => window.removeEventListener(SESION_EXPIRADA, alExpirar)
+    window.addEventListener(SESSION_EXPIRED, onExpired)
+    return () => window.removeEventListener(SESSION_EXPIRED, onExpired)
   }, [])
 
   const login = useCallback(async (dni: string, password: string) => {
-    const respuesta = await loginService({ dni, password })
-    setToken(respuesta.accessToken)
-    setEmpleado(respuesta.empleado)
+    const response = await loginService({ dni, password })
+    setToken(response.accessToken)
+    setEmployee(response.empleado)
   }, [])
 
   const logout = useCallback(() => {
     clearToken()
-    setEmpleado(null)
+    setEmployee(null)
   }, [])
 
   const value = useMemo<AuthContextValue>(
-    () => ({ empleado, cargando, login, logout }),
-    [empleado, cargando, login, logout],
+    () => ({ employee, loading, login, logout }),
+    [employee, loading, login, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

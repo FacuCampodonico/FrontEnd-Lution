@@ -1,26 +1,26 @@
-export type RolEmpleado = "mozo" | "admin"
+export type EmployeeRole = "mozo" | "admin"
 
-export interface Empleado {
+export interface Employee {
   id: string
   nombre: string
   apellido: string
   dni: string
   idTipoRol: number
   rolNombre: string | null
-  rol: RolEmpleado | null
+  rol: EmployeeRole | null
   activo: boolean | null
 }
 
-export interface CrearEmpleadoInput {
+export interface CreateEmployeeInput {
   nombre: string
   dni: string
   idTipoRol: number
   password: string
 }
 
-export type EmpleadoServicio = Empleado
+export type EmployeeResponse = Employee
 
-export interface RolDisponible {
+export interface AvailableRole {
   id: number
   nombre: string
 }

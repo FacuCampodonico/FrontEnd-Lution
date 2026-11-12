@@ -18,14 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { CrearInsumoInput, UnidadMedida } from "@/types/insumo"
+import type { CreateSupplyInput, UnitOfMeasure } from "@/types/insumo"
 
-const UNIDADES: UnidadMedida[] = ["kg", "litros", "unidades", "gramos", "mililitros"]
+const UNITS: UnitOfMeasure[] = ["kg", "litros", "unidades", "gramos", "mililitros"]
 
 interface CrearInsumoModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (input: CrearInsumoInput) => Promise<unknown>
+  onSubmit: (input: CreateSupplyInput) => Promise<unknown>
 }
 
 export function CrearInsumoModal({
@@ -34,16 +34,16 @@ export function CrearInsumoModal({
   onSubmit,
 }: CrearInsumoModalProps) {
   const { pending, error, run } = useAsyncAction()
-  const [nombre, setNombre] = useState("")
+  const [name, setName] = useState("")
   const [stock, setStock] = useState("")
-  const [unidad, setUnidad] = useState<UnidadMedida>("kg")
+  const [unit, setUnit] = useState<UnitOfMeasure>("kg")
 
   async function handleSubmit() {
     await run(async () => {
-      await onSubmit({ nombre: nombre.trim(), stock: Number(stock), unidad })
-      setNombre("")
+      await onSubmit({ nombre: name.trim(), stock: Number(stock), unidad: unit })
+      setName("")
       setStock("")
-      setUnidad("kg")
+      setUnit("kg")
       onOpenChange(false)
     })
   }
@@ -56,22 +56,22 @@ export function CrearInsumoModal({
         </DialogHeader>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="insumo-nombre">Nombre</Label>
+          <Label htmlFor="supply-name">Nombre</Label>
           <Input
-            id="insumo-nombre"
+            id="supply-name"
             maxLength={100}
             disabled={pending}
             placeholder="Muzzarella"
-            value={nombre}
-            onChange={(event) => setNombre(event.target.value)}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="insumo-stock">Stock</Label>
+            <Label htmlFor="supply-stock">Stock</Label>
             <Input
-              id="insumo-stock"
+              id="supply-stock"
               type="number"
               min="0"
               step="0.01"
@@ -82,17 +82,17 @@ export function CrearInsumoModal({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="insumo-unidad">Unidad</Label>
+            <Label htmlFor="supply-unit">Unidad</Label>
             <Select
               disabled={pending}
-              value={unidad}
-              onValueChange={(value) => setUnidad(value as UnidadMedida)}
+              value={unit}
+              onValueChange={(value) => setUnit(value as UnitOfMeasure)}
             >
-              <SelectTrigger id="insumo-unidad" className="w-full">
+              <SelectTrigger id="supply-unit" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {UNIDADES.map((u) => (
+                {UNITS.map((u) => (
                   <SelectItem key={u} value={u}>
                     {u}
                   </SelectItem>
@@ -107,7 +107,7 @@ export function CrearInsumoModal({
           <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button disabled={pending || !nombre.trim() || stock === "" || !Number.isFinite(Number(stock)) || Number(stock) < 0} onClick={handleSubmit}>
+          <Button disabled={pending || !name.trim() || stock === "" || !Number.isFinite(Number(stock)) || Number(stock) < 0} onClick={handleSubmit}>
             Confirmar
           </Button>
         </DialogFooter>

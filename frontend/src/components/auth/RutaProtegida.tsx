@@ -1,24 +1,24 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom"
 
 import { useAuth } from "@/hooks/useAuth"
-import type { Nivel } from "@/types/auth"
+import type { AccessLevel } from "@/types/auth"
 
 interface RutaProtegidaProps {
-  niveles?: Nivel[]
+  levels?: AccessLevel[]
 }
 
-export function RutaProtegida({ niveles }: RutaProtegidaProps) {
-  const { empleado, cargando } = useAuth()
+export function RutaProtegida({ levels }: RutaProtegidaProps) {
+  const { employee, loading } = useAuth()
   const location = useLocation()
 
-  if (cargando) {
+  if (loading) {
     return (
       <div className="flex min-h-svh items-center justify-center">
         <p role="status" className="text-sm text-muted-foreground">Verificando sesión…</p>
       </div>
     )
   }
-  if (!empleado) return <Navigate to="/login" state={{ from: location }} replace />
-  if (niveles && !niveles.includes(empleado.nivel)) return <Navigate to="/mesas" replace />
+  if (!employee) return <Navigate to="/login" state={{ from: location }} replace />
+  if (levels && !levels.includes(employee.nivel)) return <Navigate to="/mesas" replace />
   return <Outlet />
 }

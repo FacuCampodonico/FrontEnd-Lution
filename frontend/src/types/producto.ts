@@ -1,9 +1,9 @@
-export interface RecetaProducto {
+export interface RecipeItem {
   insumoId: string
   cantidad: number
 }
 
-export interface Producto {
+export interface Product {
   id: string
   nombre: string
   descripcion: string
@@ -11,24 +11,24 @@ export interface Producto {
   categoriaId: string
   categoriaNombre: string
   insumoIds: string[]
-  recetas: RecetaProducto[]
+  recetas: RecipeItem[]
 }
 
-export interface CrearProductoInput {
+export interface CreateProductInput {
   nombre: string
   descripcion: string
   precio: number
   categoriaId: string
-  recetas?: RecetaProducto[]
+  recetas?: RecipeItem[]
 }
 
-export interface ActualizarProductoInput {
+export interface UpdateProductInput {
   nombre?: string
   descripcion?: string
   precio?: number
   categoriaId?: string
-  /** Si viene, reemplaza la receta completa. */
-  recetas?: RecetaProducto[]
+  /** If present, replaces the whole recipe. */
+  recetas?: RecipeItem[]
 }
 
-export type ProductoServicio = Producto
+export type ProductResponse = Product

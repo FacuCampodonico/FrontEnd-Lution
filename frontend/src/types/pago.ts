@@ -1,33 +1,33 @@
-export type MetodoPagoManual = "efectivo" | "tarjeta"
-export type MetodoPago = MetodoPagoManual | "mercadopago"
+export type ManualPaymentMethod = "cash" | "card"
+export type PaymentMethod = ManualPaymentMethod | "mercadopago"
 
-export interface CrearPagoInput {
+export interface CreatePaymentInput {
   pedidoId: string
-  metodo: MetodoPagoManual
+  method: ManualPaymentMethod
   pagaCon?: number
   titular?: string
   marca?: string
   cuotas?: number
 }
 
-export interface PagoRegistrado {
+export interface RegisteredPayment {
   message: string
   pedidoId: string
   total: number
   vuelto: number
 }
 
-export interface PreferenciaMercadoPago {
+export interface MercadoPagoPreference {
   preferenceId: string
   checkoutUrl: string
-  /** Cuándo vence el QR (ISO 8601). */
+  /** When the QR expires (ISO 8601). */
   expiraEn: string
 }
 
-export type EstadoCobroMercadoPago = "sin_cobro" | "pendiente" | "pagado"
+export type MercadoPagoChargeStatus = "sin_cobro" | "pendiente" | "pagado"
 
-export interface EstadoCobroMercadoPagoResponse {
-  estado: EstadoCobroMercadoPago
+export interface MercadoPagoChargeStatusResponse {
+  estado: MercadoPagoChargeStatus
   expiraEn?: string
   total?: number
 }

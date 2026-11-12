@@ -1,24 +1,24 @@
-export type UnidadMedida = "kg" | "litros" | "unidades" | "gramos" | "mililitros"
+export type UnitOfMeasure = "kg" | "litros" | "unidades" | "gramos" | "mililitros"
 
-export interface Insumo {
+export interface Supply {
   id: string
   nombre: string
   stock: number
-  unidad: UnidadMedida
+  unidad: UnitOfMeasure
 }
 
-export interface CrearInsumoInput {
+export interface CreateSupplyInput {
   nombre: string
   stock: number
-  unidad: UnidadMedida
+  unidad: UnitOfMeasure
 }
 
-export const UNIDADES_API = {
+export const API_UNITS = {
   kg: "KG", litros: "L", unidades: "UNIDAD", gramos: "G", mililitros: "ML",
 } as const
 
-/** Insumo al que no le alcanza el stock para un pedido (409 STOCK_INSUFICIENTE). */
-export interface FaltanteStock {
+/** Supply without enough stock for an order (409 STOCK_INSUFICIENTE). */
+export interface StockShortage {
   insumoId: string
   nombre: string
   unidad: string

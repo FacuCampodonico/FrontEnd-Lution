@@ -1,26 +1,26 @@
 import { useEffect, useState } from "react"
 
 import { errorMessage } from "@/lib/errors"
-import { getPedido } from "@/services/pedidos.service"
-import type { Pedido } from "@/types/pedido"
+import { getOrder } from "@/services/pedidos.service"
+import type { Order } from "@/types/pedido"
 
-export function usePedidoDetalle(pedidoId: string | null) {
-  const [pedido, setPedido] = useState<Pedido | null>(null)
+export function usePedidoDetalle(orderId: string | null) {
+  const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!pedidoId) return
-    let vigente = true
-    setPedido(null)
+    if (!orderId) return
+    let current = true
+    setOrder(null)
     setLoading(true)
     setError(null)
-    getPedido(pedidoId)
-      .then((data) => { if (vigente) setPedido(data) })
-      .catch((cause: unknown) => { if (vigente) setError(errorMessage(cause)) })
-      .finally(() => { if (vigente) setLoading(false) })
-    return () => { vigente = false }
-  }, [pedidoId])
+    getOrder(orderId)
+      .then((data) => { if (current) setOrder(data) })
+      .catch((cause: unknown) => { if (current) setError(errorMessage(cause)) })
+      .finally(() => { if (current) setLoading(false) })
+    return () => { current = false }
+  }, [orderId])
 
-  return { pedido: pedido?.id === pedidoId ? pedido : null, loading, error }
+  return { order: order?.id === orderId ? order : null, loading, error }
 }

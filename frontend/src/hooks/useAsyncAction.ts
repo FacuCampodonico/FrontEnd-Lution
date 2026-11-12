@@ -2,9 +2,9 @@ import { useCallback, useRef, useState } from "react"
 import { errorMessage } from "@/lib/errors"
 
 interface AsyncActionOptions {
-  /** Arranca en pending, para datos que se cargan al montar. */
+  /** Start as pending, for data that loads on mount. */
   initialPending?: boolean
-  /** Mensaje fijo en vez del que devuelve el back. */
+  /** Fixed message instead of the one the backend returns. */
   failureMessage?: string
 }
 

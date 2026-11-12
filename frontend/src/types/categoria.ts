@@ -1,11 +1,11 @@
-export interface Categoria {
+export interface Category {
   id: string
   nombre: string
   productoIds: string[]
 }
 
-export interface CrearCategoriaInput {
+export interface CreateCategoryInput {
   nombre: string
 }
 
-export type CrearCategoriaRequest = CrearCategoriaInput
+export type CreateCategoryRequest = CreateCategoryInput

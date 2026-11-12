@@ -11,12 +11,12 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import type { CrearMesaInput } from "@/types/mesa"
+import type { CreateTableInput } from "@/types/mesa"
 
 interface CrearMesaModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (input: CrearMesaInput) => Promise<unknown>
+  onSubmit: (input: CreateTableInput) => Promise<unknown>
 }
 
 export function CrearMesaModal({
@@ -25,12 +25,12 @@ export function CrearMesaModal({
   onSubmit,
 }: CrearMesaModalProps) {
   const { pending, error, run } = useAsyncAction()
-  const [numero, setNumero] = useState("")
+  const [number, setNumber] = useState("")
 
   async function handleSubmit() {
     await run(async () => {
-      await onSubmit({ numero })
-      setNumero("")
+      await onSubmit({ numero: number })
+      setNumber("")
       onOpenChange(false)
     })
   }
@@ -43,16 +43,16 @@ export function CrearMesaModal({
         </DialogHeader>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="mesa-numero">Número</Label>
+          <Label htmlFor="table-number">Número</Label>
           <Input
-            id="mesa-numero"
+            id="table-number"
             type="number"
             min="1"
             step="1"
             disabled={pending}
             placeholder="09"
-            value={numero}
-            onChange={(event) => setNumero(event.target.value)}
+            value={number}
+            onChange={(event) => setNumber(event.target.value)}
           />
         </div>
 
@@ -61,7 +61,7 @@ export function CrearMesaModal({
           <Button variant="outline" disabled={pending} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button disabled={pending || !Number.isSafeInteger(Number(numero)) || Number(numero) <= 0} onClick={handleSubmit}>
+          <Button disabled={pending || !Number.isSafeInteger(Number(number)) || Number(number) <= 0} onClick={handleSubmit}>
             Confirmar
           </Button>
         </DialogFooter>
