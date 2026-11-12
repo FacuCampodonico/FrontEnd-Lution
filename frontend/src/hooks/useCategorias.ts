@@ -1,26 +1,14 @@
 import { useCallback, useEffect, useState } from "react"
 
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 import { createCategoria, getCategorias } from "@/services/categorias.service"
 import type { Categoria, CrearCategoriaInput } from "@/types/categoria"
 
 export function useCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { pending: loading, error, run } = useAsyncAction({ initialPending: true, failureMessage: "No se pudieron cargar las categorías" })
 
-  const refetch = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      setCategorias(await getCategorias())
-      return true
-    } catch {
-      setError("No se pudieron cargar las categorías")
-      return false
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const refetch = useCallback(() => run(async () => setCategorias(await getCategorias())), [run])
 
   useEffect(() => {
     void refetch()

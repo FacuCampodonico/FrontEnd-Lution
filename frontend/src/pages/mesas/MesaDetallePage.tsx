@@ -110,7 +110,7 @@ export default function MesaDetallePage() {
             <Button variant="outline" disabled={pending} onClick={descartarAvisoStock}>
               Volver
             </Button>
-            <Button disabled={pending} onClick={() => { void confirmarSinStock() }}>
+            <Button disabled={pending} onClick={() => confirmarSinStock()}>
               {pending ? "Cargando…" : "Cargar igual"}
             </Button>
           </DialogFooter>

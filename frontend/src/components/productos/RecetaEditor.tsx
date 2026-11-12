@@ -15,7 +15,7 @@ interface RecetaEditorProps {
   insumos: Insumo[]
   cargandoInsumos: boolean
   errorInsumos: string | null
-  onRecargarInsumos: () => Promise<void>
+  onRecargarInsumos: () => Promise<unknown>
   disabled: boolean
 }
 
@@ -46,7 +46,7 @@ export function RecetaEditor({
       ) : errorInsumos ? (
         <div className="flex flex-wrap items-center gap-2">
           <p role="alert" className="text-sm text-destructive">{errorInsumos}</p>
-          <Button type="button" variant="outline" disabled={disabled} onClick={() => void onRecargarInsumos()}>Reintentar</Button>
+          <Button type="button" variant="outline" disabled={disabled} onClick={() => onRecargarInsumos()}>Reintentar</Button>
         </div>
       ) : insumos.length === 0 ? (
         <p className="text-sm text-muted-foreground">Creá primero los insumos en la sección Insumos para armar la receta.</p>

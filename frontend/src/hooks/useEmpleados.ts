@@ -1,24 +1,14 @@
 import { useCallback, useEffect, useState } from "react"
 
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 import { createEmpleado, getEmpleados } from "@/services/empleados.service"
 import type { CrearEmpleadoInput, Empleado } from "@/types/empleado"
 
 export function useEmpleados(habilitado = true) {
   const [empleados, setEmpleados] = useState<Empleado[]>([])
-  const [loading, setLoading] = useState(habilitado)
-  const [error, setError] = useState<string | null>(null)
+  const { pending: loading, error, run } = useAsyncAction({ initialPending: habilitado, failureMessage: "No se pudieron cargar los empleados" })
 
-  const refetch = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      setEmpleados(await getEmpleados())
-    } catch {
-      setError("No se pudieron cargar los empleados")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const refetch = useCallback(() => run(async () => setEmpleados(await getEmpleados())), [run])
 
   useEffect(() => {
     if (habilitado) void refetch()

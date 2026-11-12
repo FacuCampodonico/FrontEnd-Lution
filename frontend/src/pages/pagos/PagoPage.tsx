@@ -68,15 +68,15 @@ export default function PagoPage() {
                     <QRCodeSVG value={qr.checkoutUrl} size={240} marginSize={0} title="QR de pago de Mercado Pago" />
                   </div>
                   <p className="text-center text-sm text-muted-foreground">El cliente escanea el QR con su celular y paga. Esta pantalla se actualiza sola cuando el pago se acredita.</p>
-                  <Button variant="outline" size="sm" onClick={() => { void copiarLink() }}>{linkCopiado ? "Link copiado" : "Copiar link de pago"}</Button>
+                  <Button variant="outline" size="sm" onClick={() => copiarLink()}>{linkCopiado ? "Link copiado" : "Copiar link de pago"}</Button>
                 </div>
               ) : (
                 <p role="status" className="text-center text-sm text-muted-foreground">Hay un cobro con Mercado Pago en curso para este pedido. Esperando el pago… Si el QR se perdió, generá uno nuevo.</p>
               )}
               <p role="status" className="text-center text-sm">Esperando el pago…</p>
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" disabled={pending} onClick={() => { void cancelarQr() }}>Cancelar cobro</Button>
-                {!qr && <Button className="flex-1" disabled={pending} onClick={() => { void generarQr() }}>Generar QR nuevo</Button>}
+                <Button variant="outline" className="flex-1" disabled={pending} onClick={() => cancelarQr()}>Cancelar cobro</Button>
+                {!qr && <Button className="flex-1" disabled={pending} onClick={() => generarQr()}>Generar QR nuevo</Button>}
               </div>
             </>
           ) : pedido ? (
@@ -91,9 +91,9 @@ export default function PagoPage() {
                 {pagaCon !== "" && !efectivoValido && <p className="text-sm text-destructive">El monto recibido debe cubrir el total y ser mayor que cero.</p>}
               </div>
               <div className="grid grid-cols-3 gap-3.5">
-                <MetodoPagoCard metodo="efectivo" label="Cobrar efectivo" icon={Banknote} disabled={!puedeCobrar || !efectivoValido} onSelect={() => { void cobrar("efectivo", Number(pagaCon)) }} />
-                <MetodoPagoCard metodo="tarjeta" label="Cobrar tarjeta" icon={CreditCard} disabled={!puedeCobrar} onSelect={() => { void cobrar("tarjeta") }} />
-                <MetodoPagoCard metodo="mercadopago" label="Mercado Pago" icon={Wallet} disabled={!puedeCobrar} onSelect={() => { void generarQr() }} />
+                <MetodoPagoCard metodo="efectivo" label="Cobrar efectivo" icon={Banknote} disabled={!puedeCobrar || !efectivoValido} onSelect={() => cobrar("efectivo", Number(pagaCon))} />
+                <MetodoPagoCard metodo="tarjeta" label="Cobrar tarjeta" icon={CreditCard} disabled={!puedeCobrar} onSelect={() => cobrar("tarjeta")} />
+                <MetodoPagoCard metodo="mercadopago" label="Mercado Pago" icon={Wallet} disabled={!puedeCobrar} onSelect={() => generarQr()} />
               </div>
               <p className="text-sm text-muted-foreground">Al cobrar, la mesa queda libre y se muestra el vuelto. Con Mercado Pago se muestra un QR para que el cliente pague desde su celular y el pago se confirma solo.</p>
             </>

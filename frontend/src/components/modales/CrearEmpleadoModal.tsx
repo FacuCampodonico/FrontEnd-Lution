@@ -14,7 +14,7 @@ interface CrearEmpleadoModalProps {
   rolesDisponibles: RolDisponible[]
   cargandoRoles: boolean
   errorRoles: string | null
-  onRecargarRoles: () => Promise<void>
+  onRecargarRoles: () => Promise<unknown>
   onSubmit: (input: CrearEmpleadoInput) => Promise<unknown>
 }
 
@@ -60,7 +60,7 @@ export function CrearEmpleadoModal({
         {errorRoles ? (
           <div className="flex flex-wrap items-center gap-2">
             <p role="alert" className="text-sm text-destructive">{errorRoles}</p>
-            <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => void onRecargarRoles()}>Reintentar</Button>
+            <Button type="button" variant="outline" size="sm" disabled={pending} onClick={() => onRecargarRoles()}>Reintentar</Button>
           </div>
         ) : !cargandoRoles && rolesDisponibles.length === 0 && (
           <p className="text-sm text-muted-foreground">No hay roles cargados en la base.</p>

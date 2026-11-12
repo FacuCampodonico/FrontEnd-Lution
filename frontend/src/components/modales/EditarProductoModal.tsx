@@ -19,7 +19,7 @@ interface EditarProductoModalProps {
   insumos: Insumo[]
   cargandoInsumos: boolean
   errorInsumos: string | null
-  onRecargarInsumos: () => Promise<void>
+  onRecargarInsumos: () => Promise<unknown>
   onSubmit: (id: string, input: ActualizarProductoInput) => Promise<unknown>
 }
 

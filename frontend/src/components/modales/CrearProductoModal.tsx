@@ -21,7 +21,7 @@ interface CrearProductoModalProps {
   insumos: Insumo[]
   cargandoInsumos: boolean
   errorInsumos: string | null
-  onRecargarInsumos: () => Promise<void>
+  onRecargarInsumos: () => Promise<unknown>
   onSubmit: (input: CrearProductoInput) => Promise<unknown>
 }
 

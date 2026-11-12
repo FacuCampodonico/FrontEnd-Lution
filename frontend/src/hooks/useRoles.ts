@@ -1,24 +1,14 @@
 import { useCallback, useEffect, useState } from "react"
 
+import { useAsyncAction } from "@/hooks/useAsyncAction"
 import { getRoles } from "@/services/empleados.service"
 import type { RolDisponible } from "@/types/empleado"
 
 export function useRoles() {
   const [roles, setRoles] = useState<RolDisponible[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { pending: loading, error, run } = useAsyncAction({ initialPending: true, failureMessage: "No se pudieron cargar los roles" })
 
-  const refetch = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      setRoles(await getRoles())
-    } catch {
-      setError("No se pudieron cargar los roles")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const refetch = useCallback(() => run(async () => setRoles(await getRoles())), [run])
 
   useEffect(() => {
     void refetch()

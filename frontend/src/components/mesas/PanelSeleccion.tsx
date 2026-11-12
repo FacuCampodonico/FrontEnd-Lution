@@ -94,7 +94,7 @@ export function PanelSeleccion({
                 size="lg"
                 className="flex-1"
                 disabled={disabled || pedidoCreado || cierrePendiente || items.length === 0 || !empleadoId}
-                onClick={() => { void onCrearPedido() }}
+                onClick={() => onCrearPedido()}
               >
                 Crear pedido
               </Button>

@@ -20,10 +20,10 @@ export function SeleccionItem({ item, disabled, onCantidad, onQuitar }: Seleccio
         <span className="font-mono text-sm">{formatCurrency(item.precioUnitario * item.cantidad)}</span>
       </div>
       <div className="flex items-center gap-2">
-        <Button size="icon-sm" variant="outline" disabled={disabled || item.cantidad <= 1} aria-label={`Reducir cantidad de ${item.productoNombre}`} onClick={() => { void onCantidad(item.id, item.cantidad - 1) }}>−</Button>
+        <Button size="icon-sm" variant="outline" disabled={disabled || item.cantidad <= 1} aria-label={`Reducir cantidad de ${item.productoNombre}`} onClick={() => onCantidad(item.id, item.cantidad - 1)}>−</Button>
         <span aria-label={`Cantidad de ${item.productoNombre}`}>{item.cantidad}</span>
-        <Button size="icon-sm" variant="outline" disabled={disabled} aria-label={`Aumentar cantidad de ${item.productoNombre}`} onClick={() => { void onCantidad(item.id, item.cantidad + 1) }}>+</Button>
-        <Button size="sm" variant="ghost" disabled={disabled} aria-label={`Quitar ${item.productoNombre}`} onClick={() => { void onQuitar(item.id) }}>Quitar</Button>
+        <Button size="icon-sm" variant="outline" disabled={disabled} aria-label={`Aumentar cantidad de ${item.productoNombre}`} onClick={() => onCantidad(item.id, item.cantidad + 1)}>+</Button>
+        <Button size="sm" variant="ghost" disabled={disabled} aria-label={`Quitar ${item.productoNombre}`} onClick={() => onQuitar(item.id)}>Quitar</Button>
       </div>
     </div>
   )

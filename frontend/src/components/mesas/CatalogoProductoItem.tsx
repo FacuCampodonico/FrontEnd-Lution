@@ -29,7 +29,7 @@ export function CatalogoProductoItem({
           size="icon-sm"
           variant="secondary"
           disabled={disabled}
-          onClick={() => { void onAgregar(producto) }}
+          onClick={() => onAgregar(producto)}
           aria-label={`Agregar ${producto.nombre}`}
         >
           +
