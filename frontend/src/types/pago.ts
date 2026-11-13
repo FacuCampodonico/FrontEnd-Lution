@@ -1,13 +1,10 @@
-export type ManualPaymentMethod = "cash" | "card"
+export type ManualPaymentMethod = "cash"
 export type PaymentMethod = ManualPaymentMethod | "mercadopago"
 
 export interface CreatePaymentInput {
   pedidoId: string
   method: ManualPaymentMethod
   pagaCon?: number
-  titular?: string
-  marca?: string
-  cuotas?: number
 }
 
 export interface RegisteredPayment {

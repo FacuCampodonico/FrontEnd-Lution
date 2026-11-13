@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { QRCodeSVG } from "qrcode.react"
-import { Banknote, CreditCard, Wallet } from "lucide-react"
+import { Banknote, Wallet } from "lucide-react"
 import { MetodoPagoCard } from "@/components/pagos/MetodoPagoCard"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { Button } from "@/components/ui/button"
@@ -90,9 +90,8 @@ export default function PagoPage() {
                 <Input id="cash-received" type="number" min="0.01" step="0.01" disabled={!canCharge} value={cashReceived} onChange={(event) => setCashReceived(event.target.value)} />
                 {cashReceived !== "" && !isValidCash && <p className="text-sm text-destructive">El monto recibido debe cubrir el total y ser mayor que cero.</p>}
               </div>
-              <div className="grid grid-cols-3 gap-3.5">
+              <div className="grid grid-cols-2 gap-3.5">
                 <MetodoPagoCard method="cash" label="Cobrar efectivo" icon={Banknote} disabled={!canCharge || !isValidCash} onSelect={() => charge("cash", Number(cashReceived))} />
-                <MetodoPagoCard method="card" label="Cobrar tarjeta" icon={CreditCard} disabled={!canCharge} onSelect={() => charge("card")} />
                 <MetodoPagoCard method="mercadopago" label="Mercado Pago" icon={Wallet} disabled={!canCharge} onSelect={() => generateQr()} />
               </div>
               <p className="text-sm text-muted-foreground">Al cobrar, la mesa queda libre y se muestra el vuelto. Con Mercado Pago se muestra un QR para que el cliente pague desde su celular y el pago se confirma solo.</p>
