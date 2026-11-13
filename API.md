@@ -107,7 +107,7 @@ Pantalla de detalle de mesa: catálogo de productos + panel de selección ("Crea
 
 ## Pagos
 
-Pantalla de Pago: elección de método (efectivo / tarjeta) y cierre de mesa.
+Pantalla de Pago: elección de método (efectivo / Mercado Pago) y cierre de mesa.
 
 | Método | Ruta | Propósito |
 |---|---|---|
@@ -128,7 +128,7 @@ Pantalla de Pago: elección de método (efectivo / tarjeta) y cierre de mesa.
   "fecha": "2026-09-12T14:30:00Z"
 }
 ```
-`metodo`: `"efectivo" | "tarjeta"`
+`metodo`: `"efectivo" | "mercadopago"`
 
 ## Categorías
 
