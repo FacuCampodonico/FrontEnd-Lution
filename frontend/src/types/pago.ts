@@ -1,13 +1,10 @@
-export type MetodoPagoManual = "efectivo" | "tarjeta"
+export type MetodoPagoManual = "efectivo"
 export type MetodoPago = MetodoPagoManual | "mercadopago"
 
 export interface CrearPagoInput {
   pedidoId: string
   metodo: MetodoPagoManual
   pagaCon?: number
-  titular?: string
-  marca?: string
-  cuotas?: number
 }
 
 export interface PagoRegistrado {
